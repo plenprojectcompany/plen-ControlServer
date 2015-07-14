@@ -220,6 +220,15 @@ def jointmove(ID, ANGLE):
 	return jsonp(data)
 
 
+@application.route("/install/", methods = ["OPTIONS"])
+def return_xhr2_response_header__install():
+	response = make_response()
+	response.headers['Access-Control-Allow-Origin'] = '*'
+	response.headers["Access-Control-Allow-Headers"] = "Origin, X-Requested-With, Content-Type, Accept"
+
+	return response
+
+
 @application.route("/install/", methods = ["POST"])
 def install():
 	data = {
@@ -227,7 +236,9 @@ def install():
 		"result"  : None
 	}
 
-	data["result"] = installMotion(request.json)
+	print request.json
+
+	# data["result"] = installMotion(request.json)
 
 	response = make_response(json.dumps(data, sort_keys = True, indent = 4))
 	response.headers["Access-Control-Allow-Origin"] = "*"
