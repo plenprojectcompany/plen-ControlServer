@@ -76,6 +76,60 @@ DEVICE_MAP = {
 	"right_foot_roll"      : 20
 }
 
+VALUE_MAP = [
+	None,
+	None,
+	None,
+	None,
+	None,
+	None,
+	None,
+	None,
+	None,
+	900,
+	900,
+	900,
+	None,
+	None,
+	None,
+	None,
+	None,
+	None,
+	None,
+	None,
+	None,
+	900,
+	900,
+	900
+]
+
+CWC_MAP = [
+	1,
+	1,
+	1,
+	-1,
+	1,
+	1,
+	1,
+	1,
+	1,
+	1,
+	1,
+	1,
+	1,
+	1,
+	1,
+	-1,
+	1,
+	1,
+	1,
+	1,
+	-1,
+	1,
+	1,
+	1
+]
+
 
 def jointMove(id, angle):
 	global ser
@@ -116,8 +170,12 @@ def installMotion(json_data):
 		cmd += "%04x" % (frame["transition_time_ms"])
 
 		for output in frame["outputs"]:
-			cmd += "%02x" % (DEVICE_MAP[output["device"]])
-			cmd += "%04x" % (c_ushort(output["value"]).value)
+			VALUE_MAP[DEVICE_MAP[output["device"]]] = c_ushort(output["value"] * CWC_MAP[DEVICE_MAP[output["device"]]]).value
+			# cmd += "%02x" % (DEVICE_MAP[output["device"]])
+			# cmd += "%04x" % (c_ushort(output["value"]).value)
+
+		for val in VALUE_MAP:
+			cmd += "%04x" % val
 
 	global ble
 	block   = len(cmd) // 20
@@ -129,6 +187,21 @@ def installMotion(json_data):
 		ble.check_activity(ser, 1)
 
 	ble.send_command(ser, ble.ble_cmd_attclient_attribute_write(0, 31, list(map(ord, cmd[-surplus:]))))
+	ble.check_activity(ser, 1)
+	ble.check_activity(ser, 1)
+
+	return True
+
+
+def playMotion(slot):
+	global ser
+	if ser == None:
+		return False
+
+	cmd = "$MP" + "%02x" % slot
+
+	global ble
+	ble.send_command(ser, ble.ble_cmd_attclient_attribute_write(0, 31, list(map(ord, cmd))))
 	ble.check_activity(ser, 1)
 	ble.check_activity(ser, 1)
 
@@ -202,6 +275,8 @@ def jsonp(data, callback = "function"):
 	)
 
 
+# REST API for "jointMove command".
+# ==============================================================================
 @application.route("/jointmove/<ID>/<ANGLE>/")
 def jointmove(ID, ANGLE):
 	data = {
@@ -220,14 +295,34 @@ def jointmove(ID, ANGLE):
 	return jsonp(data)
 
 
+# REST API for "playMotion command".
+# ==============================================================================
+@application.route("/play/<SLOT>/")
+def play(SLOT):
+	data = {
+		"command" : "Play Motion",
+		"SLOT"    : SLOT,
+		"result"  : None
+	}
+	callback = request.args.get("callback")
+	
+	data["result"] = playMotion(int(SLOT))
+
+	if callback:
+		return jsonp(data, callback)
+	
+	return jsonp(data)
+
+
+# REST API for "install command".
+# ==============================================================================
 @application.route("/install/", methods = ["OPTIONS"])
 def return_xhr2_response_header__install():
 	response = make_response()
-	response.headers['Access-Control-Allow-Origin'] = '*'
+	response.headers['Access-Control-Allow-Origin']  = '*'
 	response.headers["Access-Control-Allow-Headers"] = "Origin, X-Requested-With, Content-Type, Accept"
 
 	return response
-
 
 @application.route("/install/", methods = ["POST"])
 def install():
@@ -236,9 +331,7 @@ def install():
 		"result"  : None
 	}
 
-	print request.json
-
-	# data["result"] = installMotion(request.json)
+	data["result"] = installMotion(request.json)
 
 	response = make_response(json.dumps(data, sort_keys = True, indent = 4))
 	response.headers["Access-Control-Allow-Origin"] = "*"
@@ -247,6 +340,8 @@ def install():
 	return response
 
 
+# REST API for "connect command".
+# ==============================================================================
 @application.route("/connect/")
 def connect():
 	data = {
@@ -263,6 +358,8 @@ def connect():
 	return jsonp(data)
 
 
+# REST API for "disconnect command".
+# ==============================================================================
 @application.route("/disconnect/")
 def disconnect():
 	data = {
