@@ -379,23 +379,27 @@ def disconnect():
 # アプリケーション・エントリポイント
 # ==============================================================================
 def main():
-	if len(sys.argv) < 2:
-		print 'usage : ControlServer.exe <port no.> <MAC addr.>'
-		print '<port no.>  : required.'
-		print "<MAC addr.> : additional, plese set your PLEN's MAC addr."
-
-		sys.exit()
-
 	print '==============================================================================='
+	print 'usage : ControlServer.exe <port no.> <MAC addr.>'
+	print '<port no.>  : additional, default value is "17264".'
+	print "<MAC addr.> : additional, please set your PLEN's MAC addr."
+	print '==============================================================================='
+	
+	arg_port = None
+	if len(sys.argv) > 1:
+		arg_port = int(sys.argv[1])
+	else:
+		arg_port = 17264
+
 	ip = socket.gethostbyname(socket.gethostname())
-	print '"PLEN Control Server" is on "%s:%s".' % (ip, sys.argv[1])
+	print '"PLEN Control Server" is on "%s:%d".' % (ip, arg_port)
 
 	if len(sys.argv) > 2:
 		print 'Connect only "%s".' % (sys.argv[2])
 	print '==============================================================================='
 
 	application.debug = False
-	application.run(host = "0.0.0.0", port = int(sys.argv[1]))
+	application.run(host = "0.0.0.0", port = arg_port)
 
 
 if __name__ == "__main__":
