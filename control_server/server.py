@@ -1,6 +1,6 @@
 # -*- encoding:utf8 -*-
 
-import bglib
+import lib.bglib
 import sys, socket, serial, serial.tools.list_ports, time
 from ctypes import * 
 from flask import Flask, Response, json, make_response, request
@@ -45,7 +45,7 @@ def ble_evt_connection_status(sender, args):
 		bglib_cmd_success = False
 
 
-ble = bglib.BGLib()
+ble = lib.bglib.BGLib()
 ble.on_timeout += onTimeout
 ble.ble_evt_gap_scan_response += ble_evt_gap_scan_response
 ble.ble_evt_connection_status += ble_evt_connection_status

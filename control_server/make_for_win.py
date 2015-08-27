@@ -16,7 +16,7 @@ setup(
 	},
 
 	console = [
-		{ "script" : "application.py" }
+		{ "script" : "server.py" }
 	],
 
 	zipfile = None
