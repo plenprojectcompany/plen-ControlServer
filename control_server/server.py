@@ -2,14 +2,16 @@
 
 import os, sys, socket, json, logging
 from argparse import ArgumentParser
-from bottle import Bottle, request, response, Response, debug
+from bottle import Bottle, request, response, Response
+import driver.usb.core as USBDriver
+# import driver.bled112.core as BLED112Driver
 
 
 server = Bottle()
+# from bottle import debug
 # debug(True)
 
-driver     = None
-DEVICE_MAP = None
+driver = None
 
 
 # Set enable all requests CORS.
@@ -32,7 +34,7 @@ def output(DEVICE, VALUE):
 		"result"  : None
 	}
 
-	# data["result"] = driver.output(DEVICE, VALUE)
+	data["result"] = driver.output(DEVICE, VALUE)
 
 	response = Response(json.dumps(data, sort_keys = True, indent = 4))
 	response.mimetype = "server/json"
@@ -49,8 +51,8 @@ def play(SLOT):
 		"slot"    : SLOT,
 		"result"  : None
 	}
-	
-	# data["result"] = driver.play(SLOT)
+
+	data["result"] = driver.play(SLOT)
 
 	response = Response(json.dumps(data, sort_keys = True, indent = 4))
 	response.mimetype = "server/json"
@@ -61,14 +63,13 @@ def play(SLOT):
 # Web API for "Stop" command.
 # ==============================================================================
 @server.get("/stop")
-def play(SLOT):
+def stop():
 	data = {
-		"command" : "Play",
-		"slot"    : SLOT,
+		"command" : "Stop",
 		"result"  : None
 	}
-	
-	# data["result"] = driver.stop()
+
+	data["result"] = driver.stop()
 
 	response = Response(json.dumps(data, sort_keys = True, indent = 4))
 	response.mimetype = "server/json"
@@ -85,9 +86,9 @@ def install():
 		"result"  : None
 	}
 
-	# data["result"] = driver.install(request.json)
+	data["result"] = driver.install(request.json)
 
-	response = Response(json.dumps(request.json, sort_keys = True, indent = 4))
+	response = Response(json.dumps(data, sort_keys = True, indent = 4))
 	response.mimetype = "server/json"
 
 	return response
@@ -102,7 +103,7 @@ def connect():
 		"result"  : None
 	}
 
-	# data["result"] = driver.connect()
+	data["result"] = driver.connect()
 
 	response = Response(json.dumps(data, sort_keys = True, indent = 4))
 	response.mimetype = "server/json"
@@ -119,7 +120,7 @@ def disconnect():
 		"result"  : None
 	}
 
-	# data["result"] = driver.disconnect()
+	data["result"] = driver.disconnect()
 
 	response = Response(json.dumps(data, sort_keys = True, indent = 4))
 	response.mimetype = "server/json"
@@ -130,6 +131,19 @@ def disconnect():
 # Application entry point.
 # ==============================================================================
 def main(args):
+	if os.path.isfile('device_map.json'):
+		with open('device_map.json', 'r') as fin:
+			DEVICE_MAP = json.load(fin)
+
+			global driver
+			driver = USBDriver.Core(DEVICE_MAP)
+			# driver = BLED112Driver.Core(DEVICE_MAP)
+	else:
+		print 'Error : "device_map.json" is not found!'
+		print '==============================================================================='
+
+		sys.exit()
+
 	ip = socket.gethostbyname(socket.gethostname())
 	print '"PLEN - Control Server" is on "%s:%d".' % (ip, args.port)
 
@@ -156,15 +170,6 @@ if __name__ == "__main__":
 """[1:-1]
 	print description
 
-	if os.path.isfile('device_map.json'):
-		with open('device_map.json', 'r') as fin:
-			DEVICE_MAP = json.load(fin)
-	else:
-		print 'Error : "device_map.json" is not found!'
-		print '==============================================================================='
-
-		sys.exit()
-
 	arg_parser = ArgumentParser()
 	arg_parser.add_argument(
 		'-p', '--port',
@@ -180,7 +185,7 @@ if __name__ == "__main__":
 		choices = ('usb', 'bled112', 'ble'),
 		default = 'usb',
 		metavar = '<DRIVER>',
-		help    = 'please choose "usb" (default) or "bled112".'
+		help    = 'please choose "usb" (default), "bled112" (win only), or "ble" (mac only).'
 	)
 	arg_parser.add_argument(
 		'--mac',
