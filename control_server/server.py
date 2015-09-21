@@ -1,84 +1,93 @@
 # -*- encoding:utf8 -*-
 
-import sys, socket
+import os, sys, socket, json, logging
 from argparse import ArgumentParser
-from flask import Flask, Response, json, make_response, request
+from bottle import Bottle, request, response, Response, debug
 
 
-server = Flask(__name__)
-driver = None
-DEVICE_MAP = 
+server = Bottle()
+# debug(True)
+
+driver     = None
+DEVICE_MAP = None
 
 
-# Make a response for json with padding.
+# Set enable all requests CORS.
 # ==============================================================================
-def jsonp(data, callback = "function"):
-	return Response(
-		"%s(%s)" % (callback, json.dumps(data)),
-		mimetype = "text/javascript"
-	)
+@server.hook('after_request')
+def enable_cors():
+	response.headers['Access-Control-Allow-Origin']  = '*'
+	response.headers['Access-Control-Allow-Methods'] = 'PUT, GET, POST, DELETE, OPTIONS'
+	response.headers['Access-Control-Allow-Headers'] = 'Origin, Accept, Content-Type, X-Requested-With, X-CSRF-Token'
 
 
 # Web API for "Output" command.
 # ==============================================================================
-@server.route("/output/<DEVICE>/<VALUE>/")
-def output(ID, ANGLE):
+@server.get("/output/<DEVICE>/<VALUE:int>")
+def output(DEVICE, VALUE):
 	data = {
 		"command" : "Output",
-		"DEVICE"  : DEVICE,
-		"VALUE"   : VALUE,
+		"device"  : DEVICE,
+		"value"   : VALUE,
 		"result"  : None
 	}
-	callback = request.args.get("callback")
-	
-	data["result"] = driver.moveJoint(DEVICE, int(VALUE))
 
-	if callback:
-		return jsonp(data, callback)
-	
-	return jsonp(data)
+	# data["result"] = driver.output(DEVICE, VALUE)
+
+	response = Response(json.dumps(data, sort_keys = True, indent = 4))
+	response.mimetype = "server/json"
+
+	return response
 
 
 # Web API for "Play" command.
 # ==============================================================================
-@server.route("/play/<SLOT>/")
+@server.get("/play/<SLOT:int>")
 def play(SLOT):
 	data = {
 		"command" : "Play",
-		"SLOT"    : SLOT,
+		"slot"    : SLOT,
 		"result"  : None
 	}
-	callback = request.args.get("callback")
 	
-	data["result"] = driver.play(int(SLOT))
+	# data["result"] = driver.play(SLOT)
 
-	if callback:
-		return jsonp(data, callback)
+	response = Response(json.dumps(data, sort_keys = True, indent = 4))
+	response.mimetype = "server/json"
+
+	return response
+
+
+# Web API for "Stop" command.
+# ==============================================================================
+@server.get("/stop")
+def play(SLOT):
+	data = {
+		"command" : "Play",
+		"slot"    : SLOT,
+		"result"  : None
+	}
 	
-	return jsonp(data)
+	# data["result"] = driver.stop()
+
+	response = Response(json.dumps(data, sort_keys = True, indent = 4))
+	response.mimetype = "server/json"
+
+	return response
 
 
 # Web API for "Install" command.
 # ==============================================================================
-@server.route("/install/", methods = ["OPTIONS"])
-def return_xhr2_response_header__install():
-	response = make_response()
-	response.headers['Access-Control-Allow-Origin']  = '*'
-	response.headers["Access-Control-Allow-Headers"] = "Origin, X-Requested-With, Content-Type, Accept"
-
-	return response
-
-@server.route("/install/", methods = ["POST"])
+@server.post("/install")
 def install():
 	data = {
 		"command" : "Install",
 		"result"  : None
 	}
 
-	data["result"] = driver.install(request.json)
+	# data["result"] = driver.install(request.json)
 
-	response = make_response(json.dumps(data, sort_keys = True, indent = 4))
-	response.headers["Access-Control-Allow-Origin"] = "*"
+	response = Response(json.dumps(request.json, sort_keys = True, indent = 4))
 	response.mimetype = "server/json"
 
 	return response
@@ -86,55 +95,55 @@ def install():
 
 # Web API for "Connect" command.
 # ==============================================================================
-@server.route("/connect/")
+@server.get("/connect")
 def connect():
 	data = {
 		"command" : "Connect",
 		"result"  : None
 	}
-	callback = request.args.get("callback")
-	
-	data["result"] = driver.connect()
 
-	if callback:
-		return jsonp(data, callback)
-	
-	return jsonp(data)
+	# data["result"] = driver.connect()
+
+	response = Response(json.dumps(data, sort_keys = True, indent = 4))
+	response.mimetype = "server/json"
+
+	return response
 
 
 # Web API for "Disconnect" command.
 # ==============================================================================
-@server.route("/disconnect/")
+@server.get("/disconnect")
 def disconnect():
 	data = {
 		"command" : "Disconnect",
 		"result"  : None
 	}
-	callback = request.args.get("callback")
 
-	data["result"] = driver.disconnect()
+	# data["result"] = driver.disconnect()
 
-	if callback:
-		return jsonp(data, callback)
+	response = Response(json.dumps(data, sort_keys = True, indent = 4))
+	response.mimetype = "server/json"
 
-	return jsonp(data)
+	return response
 
 
-# アプリケーション・エントリポイント
+# Application entry point.
 # ==============================================================================
 def main(args):
-	port = int(sys.argv[1]) if (sys.argv[1] != None) else 17264
-	ip   = socket.gethostbyname(socket.gethostname())
-	print '"PLEN - Control Server" is on "%s:%d".' % (ip, port)
+	ip = socket.gethostbyname(socket.gethostname())
+	print '"PLEN - Control Server" is on "%s:%d".' % (ip, args.port)
 
-	if sys.argv[2] != None:
-		print 'Connect only "%s".' % (sys.argv[2])
+	if args.mac != '':
+		print 'Connect only "%s".' % (args.mac)
+
 	print '==============================================================================='
+	sys.stdout.flush()
 
-	server.debug = False
-	server.run(port = arg_port)
+	server.run(host='localhost', port = args.port)
 
 
+# Purse command-line option(s).
+# ==============================================================================
 if __name__ == "__main__":
 	description = """
 ===============================================================================
@@ -146,6 +155,15 @@ if __name__ == "__main__":
 ===============================================================================
 """[1:-1]
 	print description
+
+	if os.path.isfile('device_map.json'):
+		with open('device_map.json', 'r') as fin:
+			DEVICE_MAP = json.load(fin)
+	else:
+		print 'Error : "device_map.json" is not found!'
+		print '==============================================================================='
+
+		sys.exit()
 
 	arg_parser = ArgumentParser()
 	arg_parser.add_argument(
@@ -159,7 +177,7 @@ if __name__ == "__main__":
 	arg_parser.add_argument(
 		'-d', '--driver',
 		dest    = 'driver',
-		choices = ('usb', 'bled112'),
+		choices = ('usb', 'bled112', 'ble'),
 		default = 'usb',
 		metavar = '<DRIVER>',
 		help    = 'please choose "usb" (default) or "bled112".'
@@ -167,6 +185,7 @@ if __name__ == "__main__":
 	arg_parser.add_argument(
 		'--mac',
 		dest    = 'mac',
+		default = '',
 		metavar = '<MAC ADDR.>',
 		help    = "please set your PLEN's MAC address."
 	)
