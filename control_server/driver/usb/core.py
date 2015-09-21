@@ -4,6 +4,11 @@ import serial, serial.tools.list_ports
 from ctypes import c_ushort
 
 
+__author__    = 'Kazuyuki TAKASE'
+__copyright__ = 'PLEN Project Company Ltd., and all authors.'
+__license__   = 'The MIT License'
+
+
 class Core:
 	def __init__(self, device_map):
 		self._serial     = None

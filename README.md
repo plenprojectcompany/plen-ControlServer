@@ -10,7 +10,7 @@ Build Enviroment
 - Windows 8.1 Professional 64bit
 - Windows 7 Home Premium SP1 64bit
 - Python 2.7.9
-- Flask 0.10.1
+- bottle 0.12.8
 - pySerial 2.7
 - py2exe 0.6.9
 

@@ -7,6 +7,11 @@ import driver.usb.core as USBDriver
 # import driver.bled112.core as BLED112Driver
 
 
+__author__    = 'Kazuyuki TAKASE'
+__copyright__ = 'PLEN Project Company Ltd., and all authors.'
+__license__   = 'The MIT License'
+
+
 server = Bottle()
 # from bottle import debug
 # debug(True)
