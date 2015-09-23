@@ -1,6 +1,6 @@
 # -*- encoding:utf8 -*-
 
-import serial, serial.tools.list_ports
+import platform, serial, serial.tools.list_ports
 from ctypes import c_ushort
 
 
@@ -92,9 +92,23 @@ class Core:
 	def connect(self):
 		com = None
 
-		for device in list(serial.tools.list_ports.comports()):
-			if "Arduino" in device[1]:
-				com = device[0]
+		if platform.system() == 'Windows':
+			for device in list(serial.tools.list_ports.comports()):
+				if 'Arduino' in device[1]:
+					com = device[0]
+
+		if platform.system() == 'Darwin':
+			for device in list(serial.tools.list_ports.comports()):
+				if ( ( ('/dev/tty.usbmodem'  in device[1])
+					or ('/dev/tty.usbserial' in device[1]) )
+				):
+					try:
+						openable = serial.Serial(port = device[0])
+						openable.close()
+
+						com = device[0]
+					except serial.SerialException:
+						pass
 
 		if com == None:
 			return False

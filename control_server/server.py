@@ -1,10 +1,8 @@
 # -*- encoding:utf8 -*-
 
-import os, sys, socket, json, logging
+import os, sys, platform, socket, json
 from argparse import ArgumentParser
 from bottle import Bottle, request, response, Response
-import driver.usb.core as USBDriver
-# import driver.bled112.core as BLED112Driver
 
 
 __author__    = 'Kazuyuki TAKASE'
@@ -12,6 +10,8 @@ __copyright__ = 'PLEN Project Company Ltd., and all authors.'
 __license__   = 'The MIT License'
 
 
+# Create global instances.
+# ==============================================================================
 server = Bottle()
 # from bottle import debug
 # debug(True)
@@ -22,7 +22,7 @@ driver = None
 # Set enable all requests CORS.
 # ==============================================================================
 @server.hook('after_request')
-def enable_cors():
+def enableCORS():
 	response.headers['Access-Control-Allow-Origin']  = '*'
 	response.headers['Access-Control-Allow-Methods'] = 'PUT, GET, POST, DELETE, OPTIONS'
 	response.headers['Access-Control-Allow-Headers'] = 'Origin, Accept, Content-Type, X-Requested-With, X-CSRF-Token'
@@ -136,19 +136,46 @@ def disconnect():
 # Application entry point.
 # ==============================================================================
 def main(args):
+	# Get device map.
 	if os.path.isfile('device_map.json'):
 		with open('device_map.json', 'r') as fin:
 			DEVICE_MAP = json.load(fin)
-
-			global driver
-			driver = USBDriver.Core(DEVICE_MAP)
-			# driver = BLED112Driver.Core(DEVICE_MAP)
 	else:
 		print 'Error : "device_map.json" is not found!'
 		print '==============================================================================='
 
 		sys.exit()
 
+	# Create a driver instance.
+	global driver
+
+	if args.driver == 'usb':
+		import driver.usb.core as USBDriver
+		driver = USBDriver.Core(DEVICE_MAP)
+
+	if args.driver == 'bled112':
+		if platform.system() != 'Windows':
+			print 'Error : "BLED112Driver.Core" is not supported your OS!'
+			print '==============================================================================='
+
+			sys.exit()
+
+		import driver.bled112.core as BLED112Driver
+		driver = BLED112Driver.Core(DEVICE_MAP)
+
+	if args.driver == 'ble':
+		if platform.system() != 'Darwin':
+			print 'Error : "BLEDriver.Core" is not supported your OS!'
+			print '==============================================================================='
+
+			sys.exit()
+
+		print 'Error : "BLEDriver.Core" is not impremented! (Coming soon...)'
+		print '==============================================================================='
+
+		sys.exit()
+
+	# Print server configurations.
 	ip = socket.gethostbyname(socket.gethostname())
 	print '"PLEN - Control Server" is on "%s:%d".' % (ip, args.port)
 
@@ -158,7 +185,8 @@ def main(args):
 	print '==============================================================================='
 	sys.stdout.flush()
 
-	server.run(host='localhost', port = args.port)
+	# Run the HTTP Server. 
+	server.run(host = 'localhost', port = args.port)
 
 
 # Purse command-line option(s).

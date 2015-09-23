@@ -11,23 +11,29 @@ __license__   = 'The MIT License'
 
 
 class Core:
-	def __init__(self, device_map, mac = None):
+	def __init__(self, device_map, mac = ''):
 		self._serial       = None
 		self._bglib        = BGLib()
 		self._bglib_result = False
 		self._DEVICE_MAP   = device_map
 		self._values     = [ 0 for x in range(24) ]
 
-		if (mac != None):
-			mac_addr = list(map(lambda h: int(h, 16), mac.split(':')))
-			mac_addr.reverse()
+		if (mac != ''):
+			import re
+			regexp = '^\d\d:\d\d:\d\d:\d\d:\d\d:\d\d$'
+
+			if re.compile(regexp).match(mac) != None:
+				mac_addr = list(map(lambda h: int(h, 16), mac.split(':')))
+				mac_addr.reverse()
+			else:
+				mac = ''
 
 		def ble_evt_gap_scan_response(sender, args):
-			if mac != None:
+			if mac != '':
 				if args["sender"] == mac_addr:
-					ble.send_command(self._serial, self._bglib.ble_cmd_gap_connect_direct(args["sender"], 0, 60, 76, 100, 0))
+					self._bglib.send_command(self._serial, self._bglib.ble_cmd_gap_connect_direct(args["sender"], 0, 60, 76, 100, 0))
 			else:
-				ble.send_command(self._serial, self._bglib.ble_cmd_gap_connect_direct(args["sender"], 0, 60, 76, 100, 0))
+				self._bglib.send_command(self._serial, self._bglib.ble_cmd_gap_connect_direct(args["sender"], 0, 60, 76, 100, 0))
 
 		def ble_evt_connection_status(sender, args):
 			if (args["flags"] == 0x05):
@@ -132,7 +138,7 @@ class Core:
 
 		return True
 
-	def connect():
+	def connect(self):
 		com = None
 
 		for device in list(serial.tools.list_ports.comports()):
@@ -171,7 +177,7 @@ class Core:
 
 		return True
 
-	def disconnect():
+	def disconnect(self):
 		if self._serial == None:
 			return False
 
