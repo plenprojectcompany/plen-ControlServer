@@ -96,8 +96,10 @@ class Core:
 			if 'Arduino Micro' in device[1]:
 				com = device[0]
 
-		# Fix for old version max.
-		if platform.system() == 'Darwin':
+		# Fix for old version mac.
+		if (  ( (com == None)
+			and (platform.system() == 'Darwin') )
+		):
 			for device in list(serial.tools.list_ports.comports()):
 				if ( ( ('/dev/tty.usbmodem'  in device[1])
 					or ('/dev/tty.usbserial' in device[1]) )
