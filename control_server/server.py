@@ -1,406 +1,244 @@
 # -*- encoding:utf8 -*-
 
-import lib.bglib
-import sys, socket, serial, serial.tools.list_ports, time
-from ctypes import * 
-from flask import Flask, Response, json, make_response, request
+import os, sys, platform, socket, json
+from argparse import ArgumentParser
+from bottle import Bottle, request, response, Response
 
 
-application = Flask(__name__)
+__author__    = 'Kazuyuki TAKASE'
+__copyright__ = 'PLEN Project Company Ltd., and all authors.'
+__license__   = 'The MIT License'
 
 
-# BGLIBの設定
+# Create global instances.
 # ==============================================================================
-bglib_cmd_success = False
+server = Bottle()
+# from bottle import debug
+# debug(True)
 
-def onTimeout(sender, args):
-	print "onTimeout"
-
-
-def ble_evt_gap_scan_response(sender, args):
-	print "### ble_evt_gap_scan_response"
-
-	global ble
-	global ser
-	
-	if (len(sys.argv) > 2):
-		mac_addr = list(map(lambda h: int(h, 16), sys.argv[2].split(':')))
-		mac_addr.reverse()
-
-		if args["sender"] == mac_addr:
-			ble.send_command(ser, ble.ble_cmd_gap_connect_direct(args["sender"], 0, 60, 76, 100, 0))
-	else:
-		ble.send_command(ser, ble.ble_cmd_gap_connect_direct(args["sender"], 0, 60, 76, 100, 0))
+driver = None
 
 
-def ble_evt_connection_status(sender, args):
-	print "### ble_evt_connection_status"
-
-	global bglib_cmd_success
-	if (args["flags"] == 0x05):
-		print "+++ Success."
-		bglib_cmd_success = True
-	else:
-		print "+++ Failure."
-		bglib_cmd_success = False
-
-
-ble = lib.bglib.BGLib()
-ble.on_timeout += onTimeout
-ble.ble_evt_gap_scan_response += ble_evt_gap_scan_response
-ble.ble_evt_connection_status += ble_evt_connection_status
-
-ser = None
-
-
-# APIの定義
+# Create enable CORS decorator.
 # ==============================================================================
-DEVICE_MAP = {
-	"left_shoulder_pitch"  : 0,
-	"right_shoulder_pitch" : 12,
-	"left_shoulder_roll"   : 2,
-	"right_shoulder_roll"  : 14,
-	"left_elbow_roll"      : 3,
-	"right_elbow_roll"     : 15,
-	"left_thigh_yaw"       : 1,
-	"right_thigh_yaw"      : 13,
-	"left_thigh_roll"      : 4,
-	"right_thigh_roll"     : 16,
-	"left_thigh_pitch"     : 5,
-	"right_thigh_pitch"    : 17,
-	"left_knee_pitch"      : 6,
-	"right_knee_pitch"     : 18,
-	"left_foot_pitch"      : 7,
-	"right_foot_pitch"     : 19,
-	"left_foot_roll"       : 8,
-	"right_foot_roll"      : 20
-}
+def enable_cors(function):
+	def _enable_cors(*args, **kwargs):
+		response.headers['Access-Control-Allow-Origin']  = '*'
+		response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
+		response.headers['Access-Control-Allow-Headers'] = 'Origin, Accept, Content-Type, X-Requested-With, X-CSRF-Token'
 
-VALUE_MAP = [
-	None,
-	None,
-	None,
-	None,
-	None,
-	None,
-	None,
-	None,
-	None,
-	900,
-	900,
-	900,
-	None,
-	None,
-	None,
-	None,
-	None,
-	None,
-	None,
-	None,
-	None,
-	900,
-	900,
-	900
-]
+		if request.method != 'OPTIONS':
+			# actual request; reply with the actual response
+			return function(*args, **kwargs)
 
-CWC_MAP = [
-	1,
-	1,
-	1,
-	-1,
-	1,
-	1,
-	1,
-	1,
-	1,
-	1,
-	1,
-	1,
-	1,
-	1,
-	1,
-	-1,
-	1,
-	1,
-	1,
-	1,
-	-1,
-	1,
-	1,
-	1
-]
+	return _enable_cors
 
 
-def jointMove(id, angle):
-	global ser
-	if ser == None:
-		return False
-
-	cmd = "#SD%02x%04x" % (id, c_ushort(angle).value)
-
-	global ble
-	ble.send_command(ser, ble.ble_cmd_attclient_attribute_write(0, 31, list(map(ord, cmd))))
-	ble.check_activity(ser, 1)
-	ble.check_activity(ser, 1)
-
-	return True
-
-
-def installMotion(json_data):
-	global ser
-	if ser == None:
-		return False
-
-	# コマンドの指定
-	cmd = "#IN"
-	# スロット番号の指定
-	cmd += "%02x" % (json_data["slot"])
-	# モーション名の指定
-	if len(json_data["name"]) < 20:
-		cmd += json_data["name"].ljust(20)
-	else:
-		cmd += json_data["name"][:19]
-	# 制御機能の指定
-	cmd += "000000"
-	# フレーム数の指定
-	cmd += "%02x" % (len(json_data["frames"]))
-	# フレーム構成要素の指定
-	for frame in json_data["frames"]:
-		# 遷移時間の指定
-		cmd += "%04x" % (frame["transition_time_ms"])
-
-		for output in frame["outputs"]:
-			VALUE_MAP[DEVICE_MAP[output["device"]]] = c_ushort(output["value"] * CWC_MAP[DEVICE_MAP[output["device"]]]).value
-			# cmd += "%02x" % (DEVICE_MAP[output["device"]])
-			# cmd += "%04x" % (c_ushort(output["value"]).value)
-
-		for val in VALUE_MAP:
-			cmd += "%04x" % val
-
-	global ble
-	block   = len(cmd) // 20
-	surplus = len(cmd) - block * 20
-
-	for index in range(block):
-		ble.send_command(ser, ble.ble_cmd_attclient_attribute_write(0, 31, list(map(ord, cmd[20 * index: 20 * (index + 1)]))))
-		ble.check_activity(ser, 1)
-		ble.check_activity(ser, 1)
-
-	ble.send_command(ser, ble.ble_cmd_attclient_attribute_write(0, 31, list(map(ord, cmd[-surplus:]))))
-	ble.check_activity(ser, 1)
-	ble.check_activity(ser, 1)
-
-	return True
-
-
-def playMotion(slot):
-	global ser
-	if ser == None:
-		return False
-
-	cmd = "$MP" + "%02x" % slot
-
-	global ble
-	ble.send_command(ser, ble.ble_cmd_attclient_attribute_write(0, 31, list(map(ord, cmd))))
-	ble.check_activity(ser, 1)
-	ble.check_activity(ser, 1)
-
-	return True
-
-
-def BLEConnect():
-	com = None
-
-	for device in list(serial.tools.list_ports.comports()):
-		if "Bluegiga" in device[1]:
-			com = device[0]
-
-	if com == None:
-		return False
-
-	global ser
-	if ser == None:
-		ser = serial.Serial(port = com, baudrate = 115200, timeout = 1)
-		ser.flushInput()
-		ser.flushOutput()
-
-	global ble
-	ble.send_command(ser, ble.ble_cmd_connection_disconnect(0))
-	ble.check_activity(ser, 1)
-	ble.check_activity(ser, 1)
-
-	ble.send_command(ser, ble.ble_cmd_gap_set_mode(0, 0))
-	ble.check_activity(ser, 1)
-
-	ble.send_command(ser, ble.ble_cmd_gap_end_procedure())
-	ble.check_activity(ser, 1)
-
-	ble.send_command(ser, ble.ble_cmd_gap_discover(1))
-	ble.check_activity(ser, 1)
-
-	global bglib_cmd_success
-	bglib_cmd_success = False
-	while (not bglib_cmd_success):
-		ble.check_activity(ser)
-		time.sleep(0.01)
-
-	return True
-
-
-def BLEDisconnect():
-	global ser
-	if ser == None:
-		return False
-
-	global ble
-	ble.send_command(ser, ble.ble_cmd_connection_disconnect(0))
-	ble.check_activity(ser, 1)
-	ble.check_activity(ser, 1)
-
-	ser.close()
-	ser = None
-
-	global bglib_cmd_success
-	bglib_cmd_success = False
-
-	return True
-
-
-# WEB APIの定義
+# Web API for "Output" command.
 # ==============================================================================
-def jsonp(data, callback = "function"):
-	return Response(
-		"%s(%s)" % (callback, json.dumps(data)),
-		mimetype = "text/javascript"
-	)
-
-
-# REST API for "jointMove command".
-# ==============================================================================
-@application.route("/jointmove/<ID>/<ANGLE>/")
-def jointmove(ID, ANGLE):
+@server.route("/output/<DEVICE>/<VALUE:int>", method = ['OPTIONS', 'GET'])
+@enable_cors
+def output(DEVICE, VALUE):
 	data = {
-		"command" : "Joint Move",
-		"ID"      : ID,
-		"ANGLE"   : ANGLE,
+		"command" : "Output",
+		"device"  : DEVICE,
+		"value"   : VALUE,
 		"result"  : None
 	}
-	callback = request.args.get("callback")
-	
-	data["result"] = jointMove(DEVICE_MAP[ID], int(ANGLE))
 
-	if callback:
-		return jsonp(data, callback)
-	
-	return jsonp(data)
+	data["result"] = driver.output(DEVICE, VALUE)
 
-
-# REST API for "playMotion command".
-# ==============================================================================
-@application.route("/play/<SLOT>/")
-def play(SLOT):
-	data = {
-		"command" : "Play Motion",
-		"SLOT"    : SLOT,
-		"result"  : None
-	}
-	callback = request.args.get("callback")
-	
-	data["result"] = playMotion(int(SLOT))
-
-	if callback:
-		return jsonp(data, callback)
-	
-	return jsonp(data)
-
-
-# REST API for "install command".
-# ==============================================================================
-@application.route("/install/", methods = ["OPTIONS"])
-def return_xhr2_response_header__install():
-	response = make_response()
-	response.headers['Access-Control-Allow-Origin']  = '*'
-	response.headers["Access-Control-Allow-Headers"] = "Origin, X-Requested-With, Content-Type, Accept"
+	response = Response(json.dumps(data, sort_keys = True, indent = 4))
+	response.mimetype = "server/json"
 
 	return response
 
-@application.route("/install/", methods = ["POST"])
+
+# Web API for "Play" command.
+# ==============================================================================
+@server.route("/play/<SLOT:int>", method = ['OPTIONS', 'GET'])
+@enable_cors
+def play(SLOT):
+	data = {
+		"command" : "Play",
+		"slot"    : SLOT,
+		"result"  : None
+	}
+
+	data["result"] = driver.play(SLOT)
+
+	response = Response(json.dumps(data, sort_keys = True, indent = 4))
+	response.mimetype = "server/json"
+
+	return response
+
+
+# Web API for "Stop" command.
+# ==============================================================================
+@server.route("/stop", method = ['OPTIONS', 'GET'])
+@enable_cors
+def stop():
+	data = {
+		"command" : "Stop",
+		"result"  : None
+	}
+
+	data["result"] = driver.stop()
+
+	response = Response(json.dumps(data, sort_keys = True, indent = 4))
+	response.mimetype = "server/json"
+
+	return response
+
+
+# Web API for "Install" command.
+# ==============================================================================
+@server.post("/install", method = ['OPTIONS', 'POST'])
+@enable_cors
 def install():
 	data = {
 		"command" : "Install",
 		"result"  : None
 	}
 
-	data["result"] = installMotion(request.json)
+	data["result"] = driver.install(request.json)
 
-	response = make_response(json.dumps(data, sort_keys = True, indent = 4))
-	response.headers["Access-Control-Allow-Origin"] = "*"
-	response.mimetype = "application/json"
+	response = Response(json.dumps(data, sort_keys = True, indent = 4))
+	response.mimetype = "server/json"
 
 	return response
 
 
-# REST API for "connect command".
+# Web API for "Connect" command.
 # ==============================================================================
-@application.route("/connect/")
+@server.route("/connect", method = ['OPTIONS', 'GET'])
+@enable_cors
 def connect():
 	data = {
-		"command" : "BLE Connect",
+		"command" : "Connect",
 		"result"  : None
 	}
-	callback = request.args.get("callback")
-	
-	data["result"] = BLEConnect()
 
-	if callback:
-		return jsonp(data, callback)
-	
-	return jsonp(data)
+	data["result"] = driver.connect()
+
+	response = Response(json.dumps(data, sort_keys = True, indent = 4))
+	response.mimetype = "server/json"
+
+	return response
 
 
-# REST API for "disconnect command".
+# Web API for "Disconnect" command.
 # ==============================================================================
-@application.route("/disconnect/")
+@server.route("/disconnect", method = ['OPTIONS', 'GET'])
+@enable_cors
 def disconnect():
 	data = {
-		"command" : "BLE Disconnect",
+		"command" : "Disconnect",
 		"result"  : None
 	}
-	callback = request.args.get("callback")
 
-	data["result"] = BLEDisconnect()
+	data["result"] = driver.disconnect()
 
-	if callback:
-		return jsonp(data, callback)
+	response = Response(json.dumps(data, sort_keys = True, indent = 4))
+	response.mimetype = "server/json"
 
-	return jsonp(data)
+	return response
 
 
-# アプリケーション・エントリポイント
+# Application entry point.
 # ==============================================================================
-def main():
-	print '==============================================================================='
-	print 'usage : ControlServer.exe <port no.> <MAC addr.>'
-	print '<port no.>  : additional, default value is "17264".'
-	print "<MAC addr.> : additional, please set your PLEN's MAC addr."
-	print '==============================================================================='
-	
-	arg_port = None
-	if len(sys.argv) > 1:
-		arg_port = int(sys.argv[1])
+def main(args):
+	# Get device map.
+	if os.path.isfile('device_map.json'):
+		with open('device_map.json', 'r') as fin:
+			DEVICE_MAP = json.load(fin)
 	else:
-		arg_port = 17264
+		print 'Error : "device_map.json" is not found!'
+		print '==============================================================================='
 
+		sys.exit()
+
+	# Create a driver instance.
+	global driver
+
+	if args.driver == 'usb':
+		import driver.usb.core as USBDriver
+		driver = USBDriver.Core(DEVICE_MAP)
+
+	if args.driver == 'bled112':
+		if platform.system() != 'Windows':
+			print 'Error : "BLED112Driver.Core" is not supported your OS!'
+			print '==============================================================================='
+
+			sys.exit()
+
+		import driver.bled112.core as BLED112Driver
+		driver = BLED112Driver.Core(DEVICE_MAP)
+
+	if args.driver == 'ble':
+		if platform.system() != 'Darwin':
+			print 'Error : "BLEDriver.Core" is not supported your OS!'
+			print '==============================================================================='
+
+			sys.exit()
+
+		print 'Error : "BLEDriver.Core" is not impremented! (Coming soon...)'
+		print '==============================================================================='
+
+		sys.exit()
+
+	# Print server configurations.
 	ip = socket.gethostbyname(socket.gethostname())
-	print '"PLEN Control Server" is on "%s:%d".' % (ip, arg_port)
+	print '"PLEN - Control Server" is on "%s:%d".' % (ip, args.port)
 
-	if len(sys.argv) > 2:
-		print 'Connect only "%s".' % (sys.argv[2])
+	if args.mac != '':
+		print 'Connect only "%s".' % (args.mac)
+
 	print '==============================================================================='
+	sys.stdout.flush()
 
-	application.debug = False
-	application.run(host = "0.0.0.0", port = arg_port)
+	# Run the HTTP Server. 
+	server.run(host = 'localhost', port = args.port)
 
 
+# Purse command-line option(s).
+# ==============================================================================
 if __name__ == "__main__":
-	main()
+	description = """
+===============================================================================
+ ______    ________________________________________________________________
+/      `  |                                                                |
+| @  @ | <  "PLEN - Control Server" is a HTTP server for controlling PLEN. |
+`:====:'  |________________________________________________________________|
+
+===============================================================================
+"""[1:-1]
+	print description
+
+	arg_parser = ArgumentParser()
+	arg_parser.add_argument(
+		'-p', '--port',
+		dest    = 'port',
+		type    = int,
+		default = 17264,
+		metavar = '<PORT NO.>',
+		help    = 'default value is "17264".'
+	)
+	arg_parser.add_argument(
+		'-d', '--driver',
+		dest    = 'driver',
+		choices = ('usb', 'bled112', 'ble'),
+		default = 'usb',
+		metavar = '<DRIVER>',
+		help    = 'please choose "usb" (default), "bled112" (win only), or "ble" (mac only).'
+	)
+	arg_parser.add_argument(
+		'--mac',
+		dest    = 'mac',
+		default = '',
+		metavar = '<MAC ADDR.>',
+		help    = "please set your PLEN's MAC address."
+	)
+
+	args = arg_parser.parse_args()
+	main(args)
