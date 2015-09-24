@@ -92,11 +92,11 @@ class Core:
 	def connect(self):
 		com = None
 
-		if platform.system() == 'Windows':
-			for device in list(serial.tools.list_ports.comports()):
-				if 'Arduino' in device[1]:
-					com = device[0]
+		for device in list(serial.tools.list_ports.comports()):
+			if 'Arduino Micro' in device[1]:
+				com = device[0]
 
+		# Fix for old version max.
 		if platform.system() == 'Darwin':
 			for device in list(serial.tools.list_ports.comports()):
 				if ( ( ('/dev/tty.usbmodem'  in device[1])

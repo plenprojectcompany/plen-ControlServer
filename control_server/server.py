@@ -19,18 +19,25 @@ server = Bottle()
 driver = None
 
 
-# Set enable all requests CORS.
+# Create enable CORS decorator.
 # ==============================================================================
-@server.hook('after_request')
-def enableCORS():
-	response.headers['Access-Control-Allow-Origin']  = '*'
-	response.headers['Access-Control-Allow-Methods'] = 'PUT, GET, POST, DELETE, OPTIONS'
-	response.headers['Access-Control-Allow-Headers'] = 'Origin, Accept, Content-Type, X-Requested-With, X-CSRF-Token'
+def enable_cors(function):
+	def _enable_cors(*args, **kwargs):
+		response.headers['Access-Control-Allow-Origin']  = '*'
+		response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
+		response.headers['Access-Control-Allow-Headers'] = 'Origin, Accept, Content-Type, X-Requested-With, X-CSRF-Token'
+
+		if request.method != 'OPTIONS':
+			# actual request; reply with the actual response
+			return function(*args, **kwargs)
+
+	return _enable_cors
 
 
 # Web API for "Output" command.
 # ==============================================================================
-@server.get("/output/<DEVICE>/<VALUE:int>")
+@server.route("/output/<DEVICE>/<VALUE:int>", method = ['OPTIONS', 'GET'])
+@enable_cors
 def output(DEVICE, VALUE):
 	data = {
 		"command" : "Output",
@@ -49,7 +56,8 @@ def output(DEVICE, VALUE):
 
 # Web API for "Play" command.
 # ==============================================================================
-@server.get("/play/<SLOT:int>")
+@server.route("/play/<SLOT:int>", method = ['OPTIONS', 'GET'])
+@enable_cors
 def play(SLOT):
 	data = {
 		"command" : "Play",
@@ -67,7 +75,8 @@ def play(SLOT):
 
 # Web API for "Stop" command.
 # ==============================================================================
-@server.get("/stop")
+@server.route("/stop", method = ['OPTIONS', 'GET'])
+@enable_cors
 def stop():
 	data = {
 		"command" : "Stop",
@@ -84,7 +93,8 @@ def stop():
 
 # Web API for "Install" command.
 # ==============================================================================
-@server.post("/install")
+@server.post("/install", method = ['OPTIONS', 'POST'])
+@enable_cors
 def install():
 	data = {
 		"command" : "Install",
@@ -101,7 +111,8 @@ def install():
 
 # Web API for "Connect" command.
 # ==============================================================================
-@server.get("/connect")
+@server.route("/connect", method = ['OPTIONS', 'GET'])
+@enable_cors
 def connect():
 	data = {
 		"command" : "Connect",
@@ -118,7 +129,8 @@ def connect():
 
 # Web API for "Disconnect" command.
 # ==============================================================================
-@server.get("/disconnect")
+@server.route("/disconnect", method = ['OPTIONS', 'GET'])
+@enable_cors
 def disconnect():
 	data = {
 		"command" : "Disconnect",
@@ -194,11 +206,11 @@ def main(args):
 if __name__ == "__main__":
 	description = """
 ===============================================================================
+ ______    ________________________________________________________________
+/      `  |                                                                |
+| @  @ | <  "PLEN - Control Server" is a HTTP server for controlling PLEN. |
+`:====:'  |________________________________________________________________|
 
-/￣￣￣` 　|￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣|
-|○　○| ＜　"PLEN - Control Server" is a HTTP server for controlling PLEN. |
-+:----:+ 　|________________________________________________________________|
- ￣￣￣
 ===============================================================================
 """[1:-1]
 	print description
