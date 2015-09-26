@@ -1,4 +1,4 @@
-# -*- encoding:utf8 -*-
+# -*- coding: utf-8 -*-
 
 import serial, serial.tools.list_ports, time
 from ctypes import c_ushort
