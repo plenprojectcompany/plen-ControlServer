@@ -28,7 +28,7 @@ class Core:
 		if self._serial == None:
 			return False
 
-		cmd = "$MP%02x" % slot
+		cmd = "$PM%02x" % slot
 		self._serial.write(cmd)
 
 		return True
@@ -37,7 +37,7 @@ class Core:
 		if self._serial == None:
 			return False
 
-		cmd = "$MS"
+		cmd = "$SM"
 		self._serial.write(cmd)
 
 		return True
@@ -47,7 +47,7 @@ class Core:
 			return False
 
 		# コマンドの指定
-		cmd = "#IN"
+		cmd = ">IN"
 
 		# スロット番号の指定
 		cmd += "%02x" % (json["slot"])
