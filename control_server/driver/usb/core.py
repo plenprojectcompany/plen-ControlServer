@@ -1,6 +1,6 @@
 # -*- encoding:utf8 -*-
 
-import platform, serial, serial.tools.list_ports
+import platform, serial, serial.tools.list_ports, time
 from ctypes import c_ushort
 
 
@@ -85,8 +85,17 @@ class Core:
 			for value in self._values:
 				cmd += "%04x" % value
 
-		self._serial.write(cmd.encode())
+		# Divide command length by payload size.
+		block   = len(cmd) // 20
+		surplus = len(cmd) % 20
 
+		for index in range(block):
+			self._serial.write(map(ord, cmd[20 * index: 20 * (index + 1)]))
+			time.sleep(0.01)
+		self._serial.write(map(ord, cmd[-surplus:]))
+		time.sleep(0.01)
+
+		#self._serial.write(cmd.encode())
 		return True
 
 	def connect(self):
@@ -101,8 +110,10 @@ class Core:
 			and (platform.system() == 'Darwin') )
 		):
 			for device in list(serial.tools.list_ports.comports()):
-				if ( ( ('/dev/tty.usbmodem'  in device[1])
-					or ('/dev/tty.usbserial' in device[1]) )
+				if ( ( ('/dev/tty.usbmodem'  in device[0])
+					or ('/dev/tty.usbserial' in device[0])
+					or ('/dev/cu.usbmodem'   in device[0])
+					or ('/dev/cu.usbserial'  in device[0]))
 				):
 					try:
 						openable = serial.Serial(port = device[0])
@@ -116,6 +127,7 @@ class Core:
 			return False
 
 		self.disconnect()
+
 
 		if self._serial == None:
 			self._serial = serial.Serial(port = com, baudrate = 2000000, timeout = 1)
