@@ -5,6 +5,7 @@ from ctypes import c_ushort
 
 
 __author__    = 'Kazuyuki TAKASE'
+__author__    = 'Yugo KAJIWARA'
 __copyright__ = 'PLEN Project Company Ltd., and all authors.'
 __license__   = 'The MIT License'
 
@@ -92,10 +93,10 @@ class Core:
 		for index in range(block):
 			self._serial.write(map(ord, cmd[20 * index: 20 * (index + 1)]))
 			time.sleep(0.01)
+
 		self._serial.write(map(ord, cmd[-surplus:]))
 		time.sleep(0.01)
 
-		#self._serial.write(cmd.encode())
 		return True
 
 	def connect(self):
@@ -113,13 +114,14 @@ class Core:
 				if ( ( ('/dev/tty.usbmodem'  in device[0])
 					or ('/dev/tty.usbserial' in device[0])
 					or ('/dev/cu.usbmodem'   in device[0])
-					or ('/dev/cu.usbserial'  in device[0]))
+					or ('/dev/cu.usbserial'  in device[0]) )
 				):
 					try:
 						openable = serial.Serial(port = device[0])
 						openable.close()
 
 						com = device[0]
+
 					except serial.SerialException:
 						pass
 
@@ -127,7 +129,6 @@ class Core:
 			return False
 
 		self.disconnect()
-
 
 		if self._serial == None:
 			self._serial = serial.Serial(port = com, baudrate = 2000000, timeout = 1)
