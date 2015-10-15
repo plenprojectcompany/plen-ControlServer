@@ -1,4 +1,4 @@
-# -*- encoding:utf8 -*-
+# -*- coding: utf-8 -*-
 
 import serial, serial.tools.list_ports, time
 from ctypes import c_ushort
@@ -60,7 +60,7 @@ class Core:
 		if self._serial == None:
 			return False
 
-		cmd = "$MP%02x" % slot
+		cmd = "$PM%02x" % slot
 
 		self._bglib.send_command(self._serial, self._bglib.ble_cmd_attclient_attribute_write(0, 31, list(map(ord, cmd))))
 		self._bglib.check_activity(self._serial, 1)
@@ -72,7 +72,7 @@ class Core:
 		if self._serial == None:
 			return False
 
-		cmd = "$MS"
+		cmd = "$SM"
 
 		self._bglib.send_command(self._serial, self._bglib.ble_cmd_attclient_attribute_write(0, 31, list(map(ord, cmd))))
 		self._bglib.check_activity(self._serial, 1)
@@ -85,7 +85,7 @@ class Core:
 			return False
 
 		# コマンドの指定
-		cmd = "#IN"
+		cmd = ">IN"
 
 		# スロット番号の指定
 		cmd += "%02x" % (json["slot"])

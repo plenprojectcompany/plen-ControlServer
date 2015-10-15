@@ -1,10 +1,11 @@
-# -*- encoding:utf8 -*-
+# -*- coding: utf-8 -*-
 
-import platform, serial, serial.tools.list_ports
+import platform, serial, serial.tools.list_ports, time
 from ctypes import c_ushort
 
 
 __author__    = 'Kazuyuki TAKASE'
+__author__    = 'Yugo KAJIWARA'
 __copyright__ = 'PLEN Project Company Ltd., and all authors.'
 __license__   = 'The MIT License'
 
@@ -28,7 +29,7 @@ class Core:
 		if self._serial == None:
 			return False
 
-		cmd = "$MP%02x" % slot
+		cmd = "$PM%02x" % slot
 		self._serial.write(cmd)
 
 		return True
@@ -37,7 +38,7 @@ class Core:
 		if self._serial == None:
 			return False
 
-		cmd = "$MS"
+		cmd = "$SM"
 		self._serial.write(cmd)
 
 		return True
@@ -47,7 +48,7 @@ class Core:
 			return False
 
 		# コマンドの指定
-		cmd = "#IN"
+		cmd = ">IN"
 
 		# スロット番号の指定
 		cmd += "%02x" % (json["slot"])
@@ -85,7 +86,16 @@ class Core:
 			for value in self._values:
 				cmd += "%04x" % value
 
-		self._serial.write(cmd.encode())
+		# Divide command length by payload size.
+		block   = len(cmd) // 20
+		surplus = len(cmd) % 20
+
+		for index in range(block):
+			self._serial.write(map(ord, cmd[20 * index: 20 * (index + 1)]))
+			time.sleep(0.01)
+
+		self._serial.write(map(ord, cmd[-surplus:]))
+		time.sleep(0.01)
 
 		return True
 
@@ -101,14 +111,17 @@ class Core:
 			and (platform.system() == 'Darwin') )
 		):
 			for device in list(serial.tools.list_ports.comports()):
-				if ( ( ('/dev/tty.usbmodem'  in device[1])
-					or ('/dev/tty.usbserial' in device[1]) )
+				if ( ( ('/dev/tty.usbmodem'  in device[0])
+					or ('/dev/tty.usbserial' in device[0])
+					or ('/dev/cu.usbmodem'   in device[0])
+					or ('/dev/cu.usbserial'  in device[0]) )
 				):
 					try:
 						openable = serial.Serial(port = device[0])
 						openable.close()
 
 						com = device[0]
+
 					except serial.SerialException:
 						pass
 
