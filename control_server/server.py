@@ -2,7 +2,7 @@
 
 import os, sys, platform, socket, json
 from argparse import ArgumentParser
-from bottle import Bottle, request, response, Response
+from bottle import Bottle, request, response, Response, template, static_file
 
 
 __author__    = 'Kazuyuki TAKASE'
@@ -35,9 +35,23 @@ def enable_cors(function):
 	return _enable_cors
 
 
+# Routing for GUI interface.
+# ==============================================================================
+@server.route('/')
+def gui():
+	return template('gui')
+
+
+# Routing for static assets.
+# ==============================================================================
+@server.route('/assets/<file_path:path>')
+def assets(file_path):
+	return static_file(file_path, root = './assets')
+
+
 # Web API for "Output" command.
 # ==============================================================================
-@server.route("/output/<DEVICE>/<VALUE:int>", method = ['OPTIONS', 'GET'])
+@server.route('/output/<DEVICE>/<VALUE:int>', method = ['OPTIONS', 'GET'])
 @enable_cors
 def output(DEVICE, VALUE):
 	data = {
