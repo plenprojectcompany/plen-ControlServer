@@ -3,7 +3,9 @@
 import os, sys, platform, socket, json
 from argparse import ArgumentParser
 from bottle import Bottle, request, response, Response, template, static_file
-
+from gevent.pywsgi import WSGIServer
+from geventwebsocket.websocket import WebSocketError
+from geventwebsocket.handler import WebSocketHandler
 
 __author__    = 'Kazuyuki TAKASE'
 __author__    = 'Yugo KAJIWARA'
@@ -14,9 +16,6 @@ __license__   = 'The MIT License'
 # Create global instances.
 # ==============================================================================
 server = Bottle()
-# from bottle import debug
-# debug(True)
-
 driver = None
 
 
@@ -47,6 +46,26 @@ def gui():
 @server.route('/assets/<file_path:path>')
 def assets(file_path):
 	return static_file(file_path, root = './assets')
+
+
+# Provide stream on WebSocket.
+# ==============================================================================
+@server.route('/stream')
+def stream():
+	wsock = request.environ.get('wsgi.websocket')
+
+	if not wsock:
+		abort(400, 'Expected WebSocket request.')
+
+	while True:
+		try:
+			message = wsock.receive()
+			wsock.send("Your message was: %r" % message)
+
+		except WebSocketError:
+			driver.disconnect()
+
+			break
 
 
 # Web API for "Output" command.
@@ -211,9 +230,12 @@ def main(args):
 
 	# Run the HTTP Server.
 	if args.driver != 'ble':
-		server.run(host = 'localhost', port = args.port)
+		wsgi = WSGIServer(('localhost', args.port), server, handler_class = WebSocketHandler)
+		wsgi.serve_forever()
+
 	else:
 		driver.run(server.run, host = 'localhost', port = args.port)
+
 
 # Purse command-line option(s).
 # ==============================================================================
