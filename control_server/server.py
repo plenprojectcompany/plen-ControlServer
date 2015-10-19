@@ -48,24 +48,30 @@ def assets(file_path):
 	return static_file(file_path, root = './assets')
 
 
-# Provide stream on WebSocket.
+# Provide output stream on WebSocket.
 # ==============================================================================
-@server.route('/stream')
-def stream():
+@server.route('/ostream')
+def ostream():
 	wsock = request.environ.get('wsgi.websocket')
 
 	if not wsock:
 		abort(400, 'Expected WebSocket request.')
 
-	while True:
-		try:
-			message = wsock.receive()
-			wsock.send("Your message was: %r" % message)
+	if driver.connect():
+		while True:
+			try:
+				message = wsock.receive()
 
-		except WebSocketError:
-			driver.disconnect()
+				result = driver.output(
+					message.split('/')[0], int(message.split('/')[1])
+				)
 
-			break
+				wsock.send(str(result))
+
+			except:
+				driver.disconnect()
+
+				break
 
 
 # Web API for "Output" command.

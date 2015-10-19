@@ -20,8 +20,9 @@ class Core:
 		if self._serial == None:
 			return False
 
-		cmd = "$AD%02x%03x" % (self._DEVICE_MAP[device], c_ushort(value).value)
+		cmd = "$AD%02x%03x" % (self._DEVICE_MAP[device], (c_ushort(value).value & 0xFFF))
 		self._serial.write(cmd)
+		time.sleep(0.01)
 
 		return True
 
