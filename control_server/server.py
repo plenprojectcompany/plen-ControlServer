@@ -54,6 +54,13 @@ def angularjs(file_path):
 
 # Provide command-line stream on WebSocket.
 # ==============================================================================
+# The method is able to do command lines below.
+# - apply
+# - applyDiff
+# - setMin
+# - setMax
+# - setHome
+# ==============================================================================
 @server.route('/cmdstream')
 def cmdstream():
 	wsock = request.environ.get('wsgi.websocket')
@@ -75,66 +82,6 @@ def cmdstream():
 				driver.disconnect()
 
 				break
-
-
-# Web API for "Min" command.
-# ==============================================================================
-@server.route("/min/<DEVICE>/<VALUE:int>", method = ['OPTIONS', 'GET'])
-@enable_cors
-def setMin(DEVICE, VALUE):
-	data = {
-		"command" : "Min",
-		"device"  : DEVICE,
-		"value"   : VALUE,
-		"result"  : None
-	}
-
-	data["result"] = driver.min(DEVICE, VALUE)
-
-	response = Response(json.dumps(data, sort_keys = True, indent = 4))
-	response.mimetype = "server/json"
-
-	return response
-
-
-# Web API for "Max" command.
-# ==============================================================================
-@server.route("/max/<DEVICE>/<VALUE:int>", method = ['OPTIONS', 'GET'])
-@enable_cors
-def setMax(DEVICE, VALUE):
-	data = {
-		"command" : "Max",
-		"device"  : DEVICE,
-		"value"   : VALUE,
-		"result"  : None
-	}
-
-	data["result"] = driver.max(DEVICE, VALUE)
-
-	response = Response(json.dumps(data, sort_keys = True, indent = 4))
-	response.mimetype = "server/json"
-
-	return response
-
-
-# Web API for "Home" command.
-# ==============================================================================
-@server.route("/home/<DEVICE>/<VALUE:int>", method = ['OPTIONS', 'GET'])
-@enable_cors
-def setHome(DEVICE, VALUE):
-	data = {
-		"command" : "Home",
-		"device"  : DEVICE,
-		"value"   : VALUE,
-		"result"  : None
-	}
-
-	data["result"] = driver.home(DEVICE, VALUE)
-
-	response = Response(json.dumps(data, sort_keys = True, indent = 4))
-	response.mimetype = "server/json"
-
-	return response
 
 
 # Web API for "Play" command.
