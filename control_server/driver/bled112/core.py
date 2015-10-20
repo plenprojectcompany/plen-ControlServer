@@ -48,7 +48,7 @@ class Core:
 		if self._serial == None:
 			return False
 
-		cmd = "$AD%02x%03x" % (self._DEVICE_MAP[device], c_ushort(value).value)
+		cmd = "$AD%02x%03x" % (self._DEVICE_MAP[device], (c_ushort(value).value & 0xFFF))
 
 		self._bglib.send_command(self._serial, self._bglib.ble_cmd_attclient_attribute_write(0, 31, list(map(ord, cmd))))
 		self._bglib.check_activity(self._serial, 1)

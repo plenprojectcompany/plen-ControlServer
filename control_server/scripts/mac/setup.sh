@@ -5,3 +5,5 @@ python ez_setup.py
 sudo easy_install pip
 sudo pip install bottle
 sudo pip install pyserial
+sudo pip install gevent
+sudo pip install gevent-websocket

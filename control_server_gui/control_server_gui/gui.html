@@ -1,0 +1,82 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>PLENCheck for Web</title>
+    <link rel="icon" href="./assets/img/favicon.ico" />
+
+    <!-- Loading style file(s). -->
+    <link rel="stylesheet" href="./assets/css/bootstrap.min.css">
+
+    <!-- Loading javascript lib(s). -->
+    <script src="./assets/js/lodash.min.js"></script>
+    <script src="./assets/js/jquery.min.js"></script>
+    <script src="./assets/js/angular.js"></script>
+    <!--<script src="./assets/js/angular.min.js"></script>-->
+
+    <!-- Loading the application. -->
+    <script src="./assets/js/bundle.min.js"></script>
+</head>
+
+<body ng-app="ControlServerGUI" ng-strict-di>
+    <div class="container">
+        <div class="row">
+            <h1 class="text-center">PLENCheck for Web</h1>
+
+            <div class="col-xs-3 col-xs-offset-1 panel panel-default">
+                <h2>Joint List</h2>
+
+                <joint-radio-list></joint-radio-list>
+            </div>
+
+            <div class="col-xs-4">
+                <img class="center-block" src="./assets/img/plen_body.png" alt="PLEN2" width="338" height="500">
+            </div>
+
+            <div class="col-xs-3 panel panel-default">
+                <h2>Checker Components</h2>
+
+                <div class="form-group">
+                    <label for="mode-selector" class="control-label">Apply Mode</label>
+                    <select class="form-control" id="mode-selector">
+                        <option>Native ($AN)</option>
+                        <option>Diff ($AD)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="control-label">Set Value</label>
+                    <input type="range" min="-1800" max="1800">
+                </div>
+
+                <div class="form-group">
+                    <div class="row">
+                        <div class="col-xs-4">
+                            <button class="btn btn-default btn-block" type="button">Max</button>
+                        </div>
+                        <div class="col-xs-4">
+                            <button class="btn btn-default btn-block" type="button">Home</button>
+                        </div>
+                        <div class="col-xs-4">
+                            <button class="btn btn-default btn-block" type="button">Min</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="input-motion">Input Motion(s)</label>
+                    <input type="file" accept=".json" multiple id="input-motion">
+                </div>
+
+                <div class="form-group">
+                    <button class="btn btn-primary btn-block" type="button">Install</button>
+                </div>
+
+                <progress-bar></progress-bar>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

@@ -41,17 +41,21 @@ def gui():
 	return template('gui')
 
 
-# Routing for static assets.
+# Routing for static files.
 # ==============================================================================
 @server.route('/assets/<file_path:path>')
 def assets(file_path):
 	return static_file(file_path, root = './assets')
 
+@server.route('/angularjs/<file_path:path>')
+def angularjs(file_path):
+	return static_file(file_path, root = './angularjs')
 
-# Provide output stream on WebSocket.
+
+# Provide command-line stream on WebSocket.
 # ==============================================================================
-@server.route('/ostream')
-def ostream():
+@server.route('/cmdstream')
+def cmdstream():
 	wsock = request.environ.get('wsgi.websocket')
 
 	if not wsock:
@@ -60,11 +64,10 @@ def ostream():
 	if driver.connect():
 		while True:
 			try:
-				message = wsock.receive()
+				messages = wsock.receive().split('/')
 
-				result = driver.output(
-					message.split('/')[0], int(message.split('/')[1])
-				)
+				method = getattr(driver, messages[0])
+				result = method(messages[1], int(message[2]))
 
 				wsock.send(str(result))
 
@@ -74,19 +77,59 @@ def ostream():
 				break
 
 
-# Web API for "Output" command.
+# Web API for "Min" command.
 # ==============================================================================
-@server.route('/output/<DEVICE>/<VALUE:int>', method = ['OPTIONS', 'GET'])
+@server.route("/min/<DEVICE>/<VALUE:int>", method = ['OPTIONS', 'GET'])
 @enable_cors
-def output(DEVICE, VALUE):
+def setMin(DEVICE, VALUE):
 	data = {
-		"command" : "Output",
+		"command" : "Min",
 		"device"  : DEVICE,
 		"value"   : VALUE,
 		"result"  : None
 	}
 
-	data["result"] = driver.output(DEVICE, VALUE)
+	data["result"] = driver.min(DEVICE, VALUE)
+
+	response = Response(json.dumps(data, sort_keys = True, indent = 4))
+	response.mimetype = "server/json"
+
+	return response
+
+
+# Web API for "Max" command.
+# ==============================================================================
+@server.route("/max/<DEVICE>/<VALUE:int>", method = ['OPTIONS', 'GET'])
+@enable_cors
+def setMax(DEVICE, VALUE):
+	data = {
+		"command" : "Max",
+		"device"  : DEVICE,
+		"value"   : VALUE,
+		"result"  : None
+	}
+
+	data["result"] = driver.max(DEVICE, VALUE)
+
+	response = Response(json.dumps(data, sort_keys = True, indent = 4))
+	response.mimetype = "server/json"
+
+	return response
+
+
+# Web API for "Home" command.
+# ==============================================================================
+@server.route("/home/<DEVICE>/<VALUE:int>", method = ['OPTIONS', 'GET'])
+@enable_cors
+def setHome(DEVICE, VALUE):
+	data = {
+		"command" : "Home",
+		"device"  : DEVICE,
+		"value"   : VALUE,
+		"result"  : None
+	}
+
+	data["result"] = driver.home(DEVICE, VALUE)
 
 	response = Response(json.dumps(data, sort_keys = True, indent = 4))
 	response.mimetype = "server/json"
