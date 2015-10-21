@@ -1,6 +1,62 @@
+var ApplyModeSelectorController = (function () {
+    function ApplyModeSelectorController() {
+        // noop.
+    }
+    ApplyModeSelectorController.$inject = [
+    ];
+    return ApplyModeSelectorController;
+})();
 "use strict";
 var APP_NAME = "ControlServerGUI";
 angular.module(APP_NAME, []);
+/// <reference path="../../index.ts" />
+/// <reference path="./controller.ts" />
+var ApplyModeSelectorDirective = (function () {
+    function ApplyModeSelectorDirective() {
+    }
+    ApplyModeSelectorDirective.getDDO = function ($scope) {
+        return {
+            restrict: "E",
+            controller: ApplyModeSelectorController,
+            controllerAs: "install_button",
+            scope: {},
+            templateUrl: "./angularjs/components/ApplyModeSelector/view.html",
+            replace: true
+        };
+    };
+    return ApplyModeSelectorDirective;
+})();
+angular.module(APP_NAME).directive("applyModeSelector", [
+    ApplyModeSelectorDirective.getDDO
+]);
+var InstallButtonController = (function () {
+    function InstallButtonController() {
+        // noop.
+    }
+    InstallButtonController.$inject = [
+    ];
+    return InstallButtonController;
+})();
+/// <reference path="../../index.ts" />
+/// <reference path="./controller.ts" />
+var InstallButtonDirective = (function () {
+    function InstallButtonDirective() {
+    }
+    InstallButtonDirective.getDDO = function ($scope) {
+        return {
+            restrict: "E",
+            controller: InstallButtonController,
+            controllerAs: "install_button",
+            scope: {},
+            templateUrl: "./angularjs/components/InstallButton/view.html",
+            replace: true
+        };
+    };
+    return InstallButtonDirective;
+})();
+angular.module(APP_NAME).directive("installButton", [
+    InstallButtonDirective.getDDO
+]);
 var JointSettingsModel = (function () {
     function JointSettingsModel() {
         this.controlling = 0;
@@ -107,6 +163,21 @@ var JointSettingsModel = (function () {
     JointSettingsModel.prototype.getName = function () {
         return this.joint_settings[this.controlling].name;
     };
+    Object.defineProperty(JointSettingsModel.prototype, "current", {
+        get: function () {
+            return this.getValue().toString();
+        },
+        set: function (value) {
+            if (_.isString(value)) {
+                this.setValue(_.parseInt(value));
+            }
+            if (_.isNumber(value)) {
+                this.setValue(value);
+            }
+        },
+        enumerable: true,
+        configurable: true
+    });
     JointSettingsModel.$inject = [
     ];
     return JointSettingsModel;
@@ -145,6 +216,34 @@ var JointRadioListDirective = (function () {
 angular.module(APP_NAME).directive("jointRadioList", [
     JointRadioListDirective.getDDO
 ]);
+var LoadButtonController = (function () {
+    function LoadButtonController() {
+        // noop.
+    }
+    LoadButtonController.$inject = [
+    ];
+    return LoadButtonController;
+})();
+/// <reference path="../../index.ts" />
+/// <reference path="./controller.ts" />
+var LoadButtonDirective = (function () {
+    function LoadButtonDirective() {
+    }
+    LoadButtonDirective.getDDO = function ($scope) {
+        return {
+            restrict: "E",
+            controller: LoadButtonController,
+            controllerAs: "load_button",
+            scope: {},
+            templateUrl: "./angularjs/components/LoadButton/view.html",
+            replace: true
+        };
+    };
+    return LoadButtonDirective;
+})();
+angular.module(APP_NAME).directive("loadButton", [
+    LoadButtonDirective.getDDO
+]);
 var ProgressBarController = (function () {
     function ProgressBarController() {
         // noop.
@@ -172,4 +271,63 @@ var ProgressBarDirective = (function () {
 })();
 angular.module(APP_NAME).directive("progressBar", [
     ProgressBarDirective.getDDO
+]);
+var SetterButtonsController = (function () {
+    function SetterButtonsController() {
+        // noop.
+    }
+    SetterButtonsController.$inject = [
+    ];
+    return SetterButtonsController;
+})();
+/// <reference path="../../index.ts" />
+/// <reference path="./controller.ts" />
+var SetterButtonsDirective = (function () {
+    function SetterButtonsDirective() {
+    }
+    SetterButtonsDirective.getDDO = function ($scope) {
+        return {
+            restrict: "E",
+            controller: SetterButtonsController,
+            controllerAs: "setter_buttons",
+            scope: {},
+            templateUrl: "./angularjs/components/SetterButtons/view.html",
+            replace: true
+        };
+    };
+    return SetterButtonsDirective;
+})();
+angular.module(APP_NAME).directive("setterButtons", [
+    SetterButtonsDirective.getDDO
+]);
+/// <reference path="../../services/SharedJointSettings.Service.ts" />
+var ValueChangerController = (function () {
+    function ValueChangerController(joint_settings_model) {
+        this.joint_settings_model = joint_settings_model;
+        // noop.
+    }
+    ValueChangerController.$inject = [
+        "SharedJointSettingsService"
+    ];
+    return ValueChangerController;
+})();
+/// <reference path="../../index.ts" />
+/// <reference path="./controller.ts" />
+var ValueChangerDirective = (function () {
+    function ValueChangerDirective() {
+    }
+    ValueChangerDirective.getDDO = function () {
+        return {
+            restrict: "E",
+            controller: ValueChangerController,
+            controllerAs: "value_changer",
+            scope: {},
+            templateUrl: "./angularjs/components/ValueChanger/view.html",
+            replace: true
+        };
+    };
+    return ValueChangerDirective;
+})();
+angular.module(APP_NAME).directive("valueChanger", [
+    ValueChangerDirective.getDDO
 ]);

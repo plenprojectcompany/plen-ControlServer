@@ -118,4 +118,22 @@
     {
         return this.joint_settings[this.controlling].name;
     }
+
+    set current(value: any)
+    {
+        if (_.isString(value))
+        {
+            this.setValue(_.parseInt(value));
+        }
+
+        if (_.isNumber(value))
+        {
+            this.setValue(value);
+        }
+    }
+
+    get current()
+    {
+        return this.getValue().toString();
+    }
 }

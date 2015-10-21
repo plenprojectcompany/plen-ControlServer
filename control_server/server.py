@@ -73,8 +73,7 @@ def cmdstream():
 			try:
 				messages = wsock.receive().split('/')
 
-				method = getattr(driver, messages[0])
-				result = method(messages[1], int(message[2]))
+				result = getattr(driver, messages[0])(messages[1], int(messages[2]))
 
 				wsock.send(str(result))
 

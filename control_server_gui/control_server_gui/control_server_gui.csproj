@@ -18,8 +18,13 @@
     <IISExpressUseClassicPipelineMode />
   </PropertyGroup>
   <ItemGroup>
+    <Content Include="angularjs\components\ApplyModeSelector\view.html" />
+    <Content Include="angularjs\components\InstallButton\view.html" />
     <Content Include="angularjs\components\JointRadioList\view.html" />
+    <Content Include="angularjs\components\LoadButton\view.html" />
     <Content Include="angularjs\components\ProgressBar\view.html" />
+    <Content Include="angularjs\components\SetterButtons\view.html" />
+    <Content Include="angularjs\components\ValueChanger\view.html" />
     <Content Include="assets\css\bootstrap.min.css" />
     <Content Include="assets\fonts\glyphicons-halflings-regular.svg" />
     <Content Include="assets\img\favicon.ico" />
@@ -36,10 +41,20 @@
     <Content Include="web.config" />
   </ItemGroup>
   <ItemGroup>
+    <TypeScriptCompile Include="angularjs\components\ApplyModeSelector\controller.ts" />
+    <TypeScriptCompile Include="angularjs\components\ApplyModeSelector\directive.ts" />
+    <TypeScriptCompile Include="angularjs\components\InstallButton\controller.ts" />
+    <TypeScriptCompile Include="angularjs\components\InstallButton\directive.ts" />
     <TypeScriptCompile Include="angularjs\components\JointRadioList\controller.ts" />
     <TypeScriptCompile Include="angularjs\components\JointRadioList\directive.ts" />
+    <TypeScriptCompile Include="angularjs\components\LoadButton\controller.ts" />
+    <TypeScriptCompile Include="angularjs\components\LoadButton\directive.ts" />
     <TypeScriptCompile Include="angularjs\components\ProgressBar\controller.ts" />
     <TypeScriptCompile Include="angularjs\components\ProgressBar\directive.ts" />
+    <TypeScriptCompile Include="angularjs\components\SetterButtons\controller.ts" />
+    <TypeScriptCompile Include="angularjs\components\SetterButtons\directive.ts" />
+    <TypeScriptCompile Include="angularjs\components\ValueChanger\controller.ts" />
+    <TypeScriptCompile Include="angularjs\components\ValueChanger\directive.ts" />
     <TypeScriptCompile Include="angularjs\index.ts" />
     <TypeScriptCompile Include="angularjs\models\JointSettings.Model.ts" />
     <TypeScriptCompile Include="angularjs\services\SharedJointSettings.Service.ts" />
