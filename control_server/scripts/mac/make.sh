@@ -53,11 +53,27 @@ tell application "Finder" to set this_folder to parent of (path to me) as string
 set app_path to POSIX path of this_folder
 #device_map.jsonをserver本体のリソースフォルダへ保存
 do shell script "cp -f " & app_path & device_map_name & " " & resource_path & device_map_name
+# choose USB or BLE
+set driverResult to (choose from list {"USB", "BLE"} with prompt "Please Choose Driver" default items "USB")
+if driverResult is false then
+	return
+else if driverResult is equal to {"USB"} then
+	set argv to "-d usb"
+else
+	set argv to "-d ble"
+	# get PLEN_MAC_Address
+	set macAddr to text returned of (display dialog "Please enter the PLEN MAC address. \r(e.g. \"11:2a:3b:4c:5d:6e\")\r\r (Please do not enter anything if you don't need MAC-address-filtering.)" default answer "")
+	if macAddr is false then
+		return
+	else if macAddr is not equal to "" then
+		set argv to argv & " --mac " & macAddr
+	end if
+end if
 # Terminal起動
 tell application "Terminal"
 	activate
 	# appを実行（backgroundで実行することでapp起動後wrap_appが終了するようになる）
-	do script (server_path & " --driver usb &")
+	do script (server_path & " " & argv)
 end tell
 ## ここまでApplescript ##
 __APPLESCRIPT__
