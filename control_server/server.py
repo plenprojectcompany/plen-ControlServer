@@ -6,6 +6,7 @@ from bottle import Bottle, request, response, Response
 
 
 __author__    = 'Kazuyuki TAKASE'
+__author__    = 'Yugo KAJIWARA'
 __copyright__ = 'PLEN Project Company Ltd., and all authors.'
 __license__   = 'The MIT License'
 
@@ -181,11 +182,8 @@ def main(args):
 			print '==============================================================================='
 
 			sys.exit()
-
-		print 'Error : "BLEDriver.Core" is not impremented! (Coming soon...)'
-		print '==============================================================================='
-
-		sys.exit()
+		import driver.ble.core as BLEDriver
+		driver = BLEDriver.Core(DEVICE_MAP, mac=args.mac)
 
 	# Print server configurations.
 	ip = socket.gethostbyname(socket.gethostname())
@@ -197,9 +195,11 @@ def main(args):
 	print '==============================================================================='
 	sys.stdout.flush()
 
-	# Run the HTTP Server. 
-	server.run(host = 'localhost', port = args.port)
-
+	# Run the HTTP Server.
+	if args.driver != 'ble':
+		server.run(host = 'localhost', port = args.port)
+	else:
+		driver.run(server.run, host = 'localhost', port = args.port)
 
 # Purse command-line option(s).
 # ==============================================================================
@@ -210,7 +210,6 @@ if __name__ == "__main__":
 /      `  |                                                                |
 | @  @ | <  "PLEN - Control Server" is a HTTP server for controlling PLEN. |
 `:====:'  |________________________________________________________________|
-
 ===============================================================================
 """[1:-1]
 	print description
