@@ -8,11 +8,12 @@
 class PLENControlServerService
 {
     private _state: SERVER_STATE = SERVER_STATE.DISCONNECTED;
+    private _socket: WebSocket;
     private _ip_addr: string = "localhost:17264";
 
     static $inject = [
         "$http",
-        "rootScope"
+        "$rootScope"
     ];
 
     constructor(
@@ -20,14 +21,26 @@ class PLENControlServerService
         public $rootScope: ng.IRootScopeService
     )
     {
-        //$(window).on("beforeunload", () =>
-        //{
-        //    if (this._state === SERVER_STATE.CONNECTED)
-        //    {
-        //        this.disconnect();
-        //        return 'If you want to disconnect "PLEN - Control Server", please click to "Cancel" button.';
-        //    }
-        //});
+        this._socket = new WebSocket('ws://' + this._ip_addr + '/cmdstream');
+
+        this._socket.onopen = () =>
+        {
+            if (this._socket.readyState === WebSocket.OPEN)
+            {
+                this._state = SERVER_STATE.CONNECTED;
+            }
+        };
+
+        this._socket.onmessage = (event) =>
+        {
+            this._state = SERVER_STATE.CONNECTED;
+            console.log(event.data);
+        };
+
+        this._socket.onerror = () =>
+        {
+            this._state = SERVER_STATE.DISCONNECTED;
+        };
     }
 
     connect(success_callback = null): void
@@ -113,6 +126,51 @@ class PLENControlServerService
                 {
                     this.$rootScope.$broadcast("InstallFinished");
                 });
+        }
+    }
+
+    applyNative(device: string, value: number): void
+    {
+        if (this._state === SERVER_STATE.CONNECTED)
+        {
+            this._socket.send('apply/' + device + '/' + value.toString());
+            this._state = SERVER_STATE.WAITING;
+        }
+    }
+
+    applyDiff(device: string, value: number): void
+    {
+        if (this._state === SERVER_STATE.CONNECTED)
+        {
+            this._socket.send('applyDiff/' + device + '/' + value.toString());
+            this._state = SERVER_STATE.WAITING;
+        }
+    }
+
+    setMin(device: string, value: number): void
+    {
+        if (this._state === SERVER_STATE.CONNECTED)
+        {
+            this._socket.send('setMin/' + device + '/' + value.toString());
+            this._state = SERVER_STATE.WAITING;
+        }
+    }
+
+    setMax(device: string, value: number): void
+    {
+        if (this._state === SERVER_STATE.CONNECTED)
+        {
+            this._socket.send('setMax/' + device + '/' + value.toString());
+            this._state = SERVER_STATE.WAITING;
+        }
+    }
+
+    setHome(device: string, value: number): void
+    {
+        if (this._state === SERVER_STATE.CONNECTED)
+        {
+            this._socket.send('setHome/' + device + '/' + value.toString());
+            this._state = SERVER_STATE.WAITING;
         }
     }
 

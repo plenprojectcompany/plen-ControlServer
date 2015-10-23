@@ -1,4 +1,7 @@
 ﻿<div class="form-group">
     <label class="control-label">Set Value: {{value_changer.joint_settings_model.getValue()}}</label>
-    <input type="range" min="-1800" max="1800" ng-model="value_changer.joint_settings_model.current">
+    <input type="range" min="-1800" max="1800"
+        ng-model="value_changer.joint_settings_model.current"
+        ng-change="value_changer.onChange()"
+    >
 </div>

@@ -1,34 +1,3 @@
-var ApplyModeSelectorController = (function () {
-    function ApplyModeSelectorController() {
-        // noop.
-    }
-    ApplyModeSelectorController.$inject = [
-    ];
-    return ApplyModeSelectorController;
-})();
-"use strict";
-var APP_NAME = "ControlServerGUI";
-angular.module(APP_NAME, []);
-/// <reference path="../../index.ts" />
-/// <reference path="./controller.ts" />
-var ApplyModeSelectorDirective = (function () {
-    function ApplyModeSelectorDirective() {
-    }
-    ApplyModeSelectorDirective.getDDO = function ($scope) {
-        return {
-            restrict: "E",
-            controller: ApplyModeSelectorController,
-            controllerAs: "install_button",
-            scope: {},
-            templateUrl: "./angularjs/components/ApplyModeSelector/view.html",
-            replace: true
-        };
-    };
-    return ApplyModeSelectorDirective;
-})();
-angular.module(APP_NAME).directive("applyModeSelector", [
-    ApplyModeSelectorDirective.getDDO
-]);
 var InstallButtonController = (function () {
     function InstallButtonController() {
         // noop.
@@ -37,6 +6,9 @@ var InstallButtonController = (function () {
     ];
     return InstallButtonController;
 })();
+"use strict";
+var APP_NAME = "ControlServerGUI";
+angular.module(APP_NAME, []);
 /// <reference path="../../index.ts" />
 /// <reference path="./controller.ts" />
 var InstallButtonDirective = (function () {
@@ -161,7 +133,7 @@ var JointSettingsModel = (function () {
         return this.joint_settings[this.controlling].value;
     };
     JointSettingsModel.prototype.getName = function () {
-        return this.joint_settings[this.controlling].name;
+        return this.joint_settings[this.controlling]._name;
     };
     Object.defineProperty(JointSettingsModel.prototype, "current", {
         get: function () {
@@ -272,65 +244,6 @@ var ProgressBarDirective = (function () {
 angular.module(APP_NAME).directive("progressBar", [
     ProgressBarDirective.getDDO
 ]);
-var SetterButtonsController = (function () {
-    function SetterButtonsController() {
-        // noop.
-    }
-    SetterButtonsController.$inject = [
-    ];
-    return SetterButtonsController;
-})();
-/// <reference path="../../index.ts" />
-/// <reference path="./controller.ts" />
-var SetterButtonsDirective = (function () {
-    function SetterButtonsDirective() {
-    }
-    SetterButtonsDirective.getDDO = function ($scope) {
-        return {
-            restrict: "E",
-            controller: SetterButtonsController,
-            controllerAs: "setter_buttons",
-            scope: {},
-            templateUrl: "./angularjs/components/SetterButtons/view.html",
-            replace: true
-        };
-    };
-    return SetterButtonsDirective;
-})();
-angular.module(APP_NAME).directive("setterButtons", [
-    SetterButtonsDirective.getDDO
-]);
-/// <reference path="../../services/SharedJointSettings.Service.ts" />
-var ValueChangerController = (function () {
-    function ValueChangerController(joint_settings_model) {
-        this.joint_settings_model = joint_settings_model;
-        // noop.
-    }
-    ValueChangerController.$inject = [
-        "SharedJointSettingsService"
-    ];
-    return ValueChangerController;
-})();
-/// <reference path="../../index.ts" />
-/// <reference path="./controller.ts" />
-var ValueChangerDirective = (function () {
-    function ValueChangerDirective() {
-    }
-    ValueChangerDirective.getDDO = function () {
-        return {
-            restrict: "E",
-            controller: ValueChangerController,
-            controllerAs: "value_changer",
-            scope: {},
-            templateUrl: "./angularjs/components/ValueChanger/view.html",
-            replace: true
-        };
-    };
-    return ValueChangerDirective;
-})();
-angular.module(APP_NAME).directive("valueChanger", [
-    ValueChangerDirective.getDDO
-]);
 var SERVER_STATE;
 (function (SERVER_STATE) {
     SERVER_STATE[SERVER_STATE["DISCONNECTED"] = 0] = "DISCONNECTED";
@@ -340,18 +253,24 @@ var SERVER_STATE;
 ;
 var PLENControlServerService = (function () {
     function PLENControlServerService($http, $rootScope) {
+        var _this = this;
         this.$http = $http;
         this.$rootScope = $rootScope;
         this._state = 0 /* DISCONNECTED */;
         this._ip_addr = "localhost:17264";
-        //$(window).on("beforeunload", () =>
-        //{
-        //    if (this._state === SERVER_STATE.CONNECTED)
-        //    {
-        //        this.disconnect();
-        //        return 'If you want to disconnect "PLEN - Control Server", please click to "Cancel" button.';
-        //    }
-        //});
+        this._socket = new WebSocket('ws://' + this._ip_addr + '/cmdstream');
+        this._socket.onopen = function () {
+            if (_this._socket.readyState === WebSocket.OPEN) {
+                _this._state = 1 /* CONNECTED */;
+            }
+        };
+        this._socket.onmessage = function (event) {
+            _this._state = 1 /* CONNECTED */;
+            console.log(event.data);
+        };
+        this._socket.onerror = function () {
+            _this._state = 0 /* DISCONNECTED */;
+        };
     }
     PLENControlServerService.prototype.connect = function (success_callback) {
         var _this = this;
@@ -409,6 +328,36 @@ var PLENControlServerService = (function () {
             });
         }
     };
+    PLENControlServerService.prototype.applyNative = function (device, value) {
+        if (this._state === 1 /* CONNECTED */) {
+            this._socket.send('apply/' + device + '/' + value.toString());
+            this._state = 2 /* WAITING */;
+        }
+    };
+    PLENControlServerService.prototype.applyDiff = function (device, value) {
+        if (this._state === 1 /* CONNECTED */) {
+            this._socket.send('applyDiff/' + device + '/' + value.toString());
+            this._state = 2 /* WAITING */;
+        }
+    };
+    PLENControlServerService.prototype.setMin = function (device, value) {
+        if (this._state === 1 /* CONNECTED */) {
+            this._socket.send('setMin/' + device + '/' + value.toString());
+            this._state = 2 /* WAITING */;
+        }
+    };
+    PLENControlServerService.prototype.setMax = function (device, value) {
+        if (this._state === 1 /* CONNECTED */) {
+            this._socket.send('setMax/' + device + '/' + value.toString());
+            this._state = 2 /* WAITING */;
+        }
+    };
+    PLENControlServerService.prototype.setHome = function (device, value) {
+        if (this._state === 1 /* CONNECTED */) {
+            this._socket.send('setHome/' + device + '/' + value.toString());
+            this._state = 2 /* WAITING */;
+        }
+    };
     PLENControlServerService.prototype.play = function (slot, success_callback) {
         var _this = this;
         if (success_callback === void 0) { success_callback = null; }
@@ -448,8 +397,92 @@ var PLENControlServerService = (function () {
     };
     PLENControlServerService.$inject = [
         "$http",
-        "rootScope"
+        "$rootScope"
     ];
     return PLENControlServerService;
 })();
 angular.module(APP_NAME).service("PLENControlServerService", PLENControlServerService);
+/// <reference path="../../services/PLENControlServer.Service.ts" />
+/// <reference path="../../services/SharedJointSettings.Service.ts" />
+var SetterButtonsController = (function () {
+    function SetterButtonsController(ctrl_server_service, joint_settings) {
+        this.ctrl_server_service = ctrl_server_service;
+        this.joint_settings = joint_settings;
+        // noop.
+    }
+    SetterButtonsController.prototype.onClickMax = function () {
+        this.ctrl_server_service.setMax(this.joint_settings.getName(), this.joint_settings.getValue());
+    };
+    SetterButtonsController.prototype.onClickHome = function () {
+        this.ctrl_server_service.setHome(this.joint_settings.getName(), this.joint_settings.getValue());
+    };
+    SetterButtonsController.prototype.onClickMin = function () {
+        this.ctrl_server_service.setMin(this.joint_settings.getName(), this.joint_settings.getValue());
+    };
+    SetterButtonsController.prototype.onClickReset = function () {
+        this.joint_settings.setValue(0);
+        this.ctrl_server_service.applyNative(this.joint_settings.getName(), 0);
+    };
+    SetterButtonsController.$inject = [
+        "PLENControlServerService",
+        "SharedJointSettingsService"
+    ];
+    return SetterButtonsController;
+})();
+/// <reference path="../../index.ts" />
+/// <reference path="./controller.ts" />
+var SetterButtonsDirective = (function () {
+    function SetterButtonsDirective() {
+    }
+    SetterButtonsDirective.getDDO = function ($scope) {
+        return {
+            restrict: "E",
+            controller: SetterButtonsController,
+            controllerAs: "setter_buttons",
+            scope: {},
+            templateUrl: "./angularjs/components/SetterButtons/view.html",
+            replace: true
+        };
+    };
+    return SetterButtonsDirective;
+})();
+angular.module(APP_NAME).directive("setterButtons", [
+    SetterButtonsDirective.getDDO
+]);
+/// <reference path="../../services/PLENControlServer.Service.ts" />
+/// <reference path="../../services/SharedJointSettings.Service.ts" />
+var ValueChangerController = (function () {
+    function ValueChangerController(ctrl_server_service, joint_settings_model) {
+        this.ctrl_server_service = ctrl_server_service;
+        this.joint_settings_model = joint_settings_model;
+        // noop.
+    }
+    ValueChangerController.prototype.onChange = function () {
+        this.ctrl_server_service.applyNative(this.joint_settings_model.getName(), this.joint_settings_model.getValue());
+    };
+    ValueChangerController.$inject = [
+        "PLENControlServerService",
+        "SharedJointSettingsService"
+    ];
+    return ValueChangerController;
+})();
+/// <reference path="../../index.ts" />
+/// <reference path="./controller.ts" />
+var ValueChangerDirective = (function () {
+    function ValueChangerDirective() {
+    }
+    ValueChangerDirective.getDDO = function () {
+        return {
+            restrict: "E",
+            controller: ValueChangerController,
+            controllerAs: "value_changer",
+            scope: {},
+            templateUrl: "./angularjs/components/ValueChanger/view.html",
+            replace: true
+        };
+    };
+    return ValueChangerDirective;
+})();
+angular.module(APP_NAME).directive("valueChanger", [
+    ValueChangerDirective.getDDO
+]);

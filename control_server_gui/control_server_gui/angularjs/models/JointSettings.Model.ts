@@ -116,7 +116,7 @@
 
     getName(): string
     {
-        return this.joint_settings[this.controlling].name;
+        return this.joint_settings[this.controlling]._name;
     }
 
     set current(value: any)

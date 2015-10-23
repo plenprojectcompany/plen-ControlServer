@@ -18,7 +18,6 @@
     <IISExpressUseClassicPipelineMode />
   </PropertyGroup>
   <ItemGroup>
-    <Content Include="angularjs\components\ApplyModeSelector\view.html" />
     <Content Include="angularjs\components\InstallButton\view.html" />
     <Content Include="angularjs\components\JointRadioList\view.html" />
     <Content Include="angularjs\components\LoadButton\view.html" />
@@ -41,8 +40,6 @@
     <Content Include="web.config" />
   </ItemGroup>
   <ItemGroup>
-    <TypeScriptCompile Include="angularjs\components\ApplyModeSelector\controller.ts" />
-    <TypeScriptCompile Include="angularjs\components\ApplyModeSelector\directive.ts" />
     <TypeScriptCompile Include="angularjs\components\InstallButton\controller.ts" />
     <TypeScriptCompile Include="angularjs\components\InstallButton\directive.ts" />
     <TypeScriptCompile Include="angularjs\components\JointRadioList\controller.ts" />
