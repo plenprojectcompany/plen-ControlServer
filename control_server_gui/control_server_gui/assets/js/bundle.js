@@ -331,3 +331,125 @@ var ValueChangerDirective = (function () {
 angular.module(APP_NAME).directive("valueChanger", [
     ValueChangerDirective.getDDO
 ]);
+var SERVER_STATE;
+(function (SERVER_STATE) {
+    SERVER_STATE[SERVER_STATE["DISCONNECTED"] = 0] = "DISCONNECTED";
+    SERVER_STATE[SERVER_STATE["CONNECTED"] = 1] = "CONNECTED";
+    SERVER_STATE[SERVER_STATE["WAITING"] = 2] = "WAITING";
+})(SERVER_STATE || (SERVER_STATE = {}));
+;
+var PLENControlServerService = (function () {
+    function PLENControlServerService($http, $rootScope) {
+        this.$http = $http;
+        this.$rootScope = $rootScope;
+        this._state = 0 /* DISCONNECTED */;
+        this._ip_addr = "localhost:17264";
+        //$(window).on("beforeunload", () =>
+        //{
+        //    if (this._state === SERVER_STATE.CONNECTED)
+        //    {
+        //        this.disconnect();
+        //        return 'If you want to disconnect "PLEN - Control Server", please click to "Cancel" button.';
+        //    }
+        //});
+    }
+    PLENControlServerService.prototype.connect = function (success_callback) {
+        var _this = this;
+        if (success_callback === void 0) { success_callback = null; }
+        if (this._state === 0 /* DISCONNECTED */) {
+            this._state = 2 /* WAITING */;
+            this.$http.get("//" + this._ip_addr + "/connect").success(function (response) {
+                if (response.result === true) {
+                    _this._state = 1 /* CONNECTED */;
+                    if (!_.isNull(success_callback)) {
+                        success_callback();
+                    }
+                }
+                else {
+                    _this._state = 0 /* DISCONNECTED */;
+                }
+            }).error(function () {
+                _this._state = 0 /* DISCONNECTED */;
+            });
+        }
+    };
+    PLENControlServerService.prototype.disconnect = function (success_callback) {
+        var _this = this;
+        if (success_callback === void 0) { success_callback = null; }
+        if (this._state === 1 /* CONNECTED */) {
+            this._state === 2 /* WAITING */;
+            this.$http.get("//" + this._ip_addr + "/disconnect").success(function (response) {
+                if (response.result === true) {
+                    if (!_.isNull(success_callback)) {
+                        success_callback();
+                    }
+                }
+                _this._state = 0 /* DISCONNECTED */;
+            }).error(function () {
+                _this._state = 1 /* CONNECTED */;
+            });
+        }
+    };
+    PLENControlServerService.prototype.install = function (json, success_callback) {
+        var _this = this;
+        if (success_callback === void 0) { success_callback = null; }
+        if (this._state === 1 /* CONNECTED */) {
+            this._state = 2 /* WAITING */;
+            this.$http.post("//" + this._ip_addr + "/install", json).success(function (response) {
+                _this._state = 1 /* CONNECTED */;
+                if (response.result === true) {
+                    if (!_.isNull(success_callback)) {
+                        success_callback();
+                    }
+                }
+            }).error(function () {
+                _this._state = 0 /* DISCONNECTED */;
+            }).finally(function () {
+                _this.$rootScope.$broadcast("InstallFinished");
+            });
+        }
+    };
+    PLENControlServerService.prototype.play = function (slot, success_callback) {
+        var _this = this;
+        if (success_callback === void 0) { success_callback = null; }
+        if (this._state === 1 /* CONNECTED */) {
+            this._state = 2 /* WAITING */;
+            this.$http.get("//" + this._ip_addr + "/play/" + slot.toString()).success(function (response) {
+                _this._state = 1 /* CONNECTED */;
+                if (response.result === true) {
+                    if (!_.isNull(success_callback)) {
+                        success_callback();
+                    }
+                }
+            }).error(function () {
+                _this._state = 0 /* DISCONNECTED */;
+            });
+        }
+    };
+    PLENControlServerService.prototype.stop = function (success_callback) {
+        var _this = this;
+        if (success_callback === void 0) { success_callback = null; }
+        if (this._state === 1 /* CONNECTED */) {
+            this._state === 2 /* WAITING */;
+            this.$http.get("//" + this._ip_addr + "/stop").success(function (response) {
+                _this._state = 1 /* CONNECTED */;
+                if (response.result === true) {
+                    if (!_.isNull(success_callback)) {
+                        success_callback();
+                    }
+                }
+            }).error(function () {
+                _this._state = 0 /* DISCONNECTED */;
+            });
+        }
+    };
+    PLENControlServerService.prototype.getStatus = function () {
+        return this._state;
+    };
+    PLENControlServerService.$inject = [
+        "$http",
+        "rootScope"
+    ];
+    return PLENControlServerService;
+})();
+angular.module(APP_NAME).service("PLENControlServerService", PLENControlServerService);
