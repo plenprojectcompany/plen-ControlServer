@@ -137,7 +137,7 @@ var JointSettingsModel = (function () {
     };
     Object.defineProperty(JointSettingsModel.prototype, "current", {
         get: function () {
-            return this.getValue().toString();
+            return this.getValue();
         },
         set: function (value) {
             if (_.isString(value)) {

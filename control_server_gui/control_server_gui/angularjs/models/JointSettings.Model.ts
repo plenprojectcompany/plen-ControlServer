@@ -134,6 +134,6 @@
 
     get current()
     {
-        return this.getValue().toString();
+        return this.getValue();
     }
 }
