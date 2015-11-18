@@ -44,17 +44,71 @@ class Core:
 		self._bglib.ble_evt_gap_scan_response += ble_evt_gap_scan_response
 		self._bglib.ble_evt_connection_status += ble_evt_connection_status
 
-	def output(self, device, value):
+
+	def apply(self, device, value):
 		if self._serial == None:
 			return False
 
-		cmd = "$AD%02x%03x" % (self._DEVICE_MAP[device], c_ushort(value).value)
+		cmd = "$AN%02x%03x" % (self._DEVICE_MAP[device], (c_ushort(value).value & 0xFFF))
 
 		self._bglib.send_command(self._serial, self._bglib.ble_cmd_attclient_attribute_write(0, 31, list(map(ord, cmd))))
 		self._bglib.check_activity(self._serial, 1)
 		self._bglib.check_activity(self._serial, 1)
 
 		return True
+
+
+	def applyDiff(self, device, value):
+		if self._serial == None:
+			return False
+
+		cmd = "$AD%02x%03x" % (self._DEVICE_MAP[device], (c_ushort(value).value & 0xFFF))
+
+		self._bglib.send_command(self._serial, self._bglib.ble_cmd_attclient_attribute_write(0, 31, list(map(ord, cmd))))
+		self._bglib.check_activity(self._serial, 1)
+		self._bglib.check_activity(self._serial, 1)
+
+		return True
+
+
+	def setMin(self, device, value):
+		if self._serial == None:
+			return False
+
+		cmd = ">MI%02x%03x" % (self._DEVICE_MAP[device], (c_ushort(value).value & 0xFFF))
+
+		self._bglib.send_command(self._serial, self._bglib.ble_cmd_attclient_attribute_write(0, 31, list(map(ord, cmd))))
+		self._bglib.check_activity(self._serial, 1)
+		self._bglib.check_activity(self._serial, 1)
+
+		return True
+
+
+	def setMax(self, device, value):
+		if self._serial == None:
+			return False
+
+		cmd = ">MA%02x%03x" % (self._DEVICE_MAP[device], (c_ushort(value).value & 0xFFF))
+
+		self._bglib.send_command(self._serial, self._bglib.ble_cmd_attclient_attribute_write(0, 31, list(map(ord, cmd))))
+		self._bglib.check_activity(self._serial, 1)
+		self._bglib.check_activity(self._serial, 1)
+
+		return True
+
+
+	def setHome(self, device, value):
+		if self._serial == None:
+			return False
+
+		cmd = ">HO%02x%03x" % (self._DEVICE_MAP[device], (c_ushort(value).value & 0xFFF))
+
+		self._bglib.send_command(self._serial, self._bglib.ble_cmd_attclient_attribute_write(0, 31, list(map(ord, cmd))))
+		self._bglib.check_activity(self._serial, 1)
+		self._bglib.check_activity(self._serial, 1)
+
+		return True
+
 
 	def play(self, slot):
 		if self._serial == None:
@@ -68,6 +122,7 @@ class Core:
 
 		return True
 
+
 	def stop(self):
 		if self._serial == None:
 			return False
@@ -79,6 +134,7 @@ class Core:
 		self._bglib.check_activity(self._serial, 1)
 
 		return True
+
 
 	def install(self, json):
 		if self._serial == None:
@@ -138,6 +194,7 @@ class Core:
 
 		return True
 
+
 	def connect(self):
 		com = None
 
@@ -176,6 +233,7 @@ class Core:
 			time.sleep(0.01)
 
 		return True
+
 
 	def disconnect(self):
 		if self._serial == None:

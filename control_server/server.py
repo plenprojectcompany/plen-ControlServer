@@ -2,8 +2,10 @@
 
 import os, sys, platform, socket, json
 from argparse import ArgumentParser
-from bottle import Bottle, request, response, Response
-
+from bottle import Bottle, request, response, Response, template, static_file
+from gevent.pywsgi import WSGIServer
+from geventwebsocket.websocket import WebSocketError
+from geventwebsocket.handler import WebSocketHandler
 
 __author__    = 'Kazuyuki TAKASE'
 __author__    = 'Yugo KAJIWARA'
@@ -14,9 +16,6 @@ __license__   = 'The MIT License'
 # Create global instances.
 # ==============================================================================
 server = Bottle()
-# from bottle import debug
-# debug(True)
-
 driver = None
 
 
@@ -35,24 +34,53 @@ def enable_cors(function):
 	return _enable_cors
 
 
-# Web API for "Output" command.
+# Routing for GUI interface.
 # ==============================================================================
-@server.route("/output/<DEVICE>/<VALUE:int>", method = ['OPTIONS', 'GET'])
-@enable_cors
-def output(DEVICE, VALUE):
-	data = {
-		"command" : "Output",
-		"device"  : DEVICE,
-		"value"   : VALUE,
-		"result"  : None
-	}
+@server.route('/')
+def gui():
+	return template('gui')
 
-	data["result"] = driver.output(DEVICE, VALUE)
 
-	response = Response(json.dumps(data, sort_keys = True, indent = 4))
-	response.mimetype = "server/json"
+# Routing for static files.
+# ==============================================================================
+@server.route('/assets/<file_path:path>')
+def assets(file_path):
+	return static_file(file_path, root = './assets')
 
-	return response
+@server.route('/angularjs/<file_path:path>')
+def angularjs(file_path):
+	return static_file(file_path, root = './angularjs')
+
+
+# Provide command-line stream on WebSocket.
+# ==============================================================================
+# The method is able to do command lines below.
+# - apply
+# - applyDiff
+# - setMin
+# - setMax
+# - setHome
+# ==============================================================================
+@server.route('/cmdstream')
+def cmdstream():
+	wsock = request.environ.get('wsgi.websocket')
+
+	if not wsock:
+		abort(400, 'Expected WebSocket request.')
+
+	if driver.connect():
+		while True:
+			try:
+				messages = wsock.receive().split('/')
+
+				result = getattr(driver, messages[0])(messages[1], int(messages[2]))
+
+				wsock.send(str(result))
+
+			except:
+				driver.disconnect()
+
+				break
 
 
 # Web API for "Play" command.
@@ -197,9 +225,12 @@ def main(args):
 
 	# Run the HTTP Server.
 	if args.driver != 'ble':
-		server.run(host = 'localhost', port = args.port)
+		wsgi = WSGIServer(('localhost', args.port), server, handler_class = WebSocketHandler)
+		wsgi.serve_forever()
+
 	else:
 		driver.run(server.run, host = 'localhost', port = args.port)
+
 
 # Purse command-line option(s).
 # ==============================================================================

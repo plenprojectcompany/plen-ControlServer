@@ -16,14 +16,58 @@ class Core:
 		self._DEVICE_MAP = device_map
 		self._values     = [ 0 for x in range(24) ]
 
-	def output(self, device, value):
+
+	def apply(self, device, value):
 		if self._serial == None:
 			return False
 
-		cmd = "$AD%02x%03x" % (self._DEVICE_MAP[device], c_ushort(value).value)
+		cmd = "$AN%02x%03x" % (self._DEVICE_MAP[device], (c_ushort(value).value & 0xFFF))
+		self._serial.write(cmd)
+		time.sleep(0.01)
+
+		return True
+
+
+	def applyDiff(self, device, value):
+		if self._serial == None:
+			return False
+
+		cmd = "$AD%02x%03x" % (self._DEVICE_MAP[device], (c_ushort(value).value & 0xFFF))
+		self._serial.write(cmd)
+		time.sleep(0.01)
+
+		return True
+
+
+	def setMin(self, device, value):
+		if self._serial == None:
+			return False
+
+		cmd = ">MI%02x%03x" % (self._DEVICE_MAP[device], (c_ushort(value).value & 0xFFF))
 		self._serial.write(cmd)
 
 		return True
+
+
+	def setMax(self, device, value):
+		if self._serial == None:
+			return False
+
+		cmd = ">MA%02x%03x" % (self._DEVICE_MAP[device], (c_ushort(value).value & 0xFFF))
+		self._serial.write(cmd)
+
+		return True
+
+
+	def setHome(self, device, value):
+		if self._serial == None:
+			return False
+
+		cmd = ">HO%02x%03x" % (self._DEVICE_MAP[device], (c_ushort(value).value & 0xFFF))
+		self._serial.write(cmd)
+
+		return True
+
 
 	def play(self, slot):
 		if self._serial == None:
@@ -34,6 +78,7 @@ class Core:
 
 		return True
 
+
 	def stop(self):
 		if self._serial == None:
 			return False
@@ -42,6 +87,7 @@ class Core:
 		self._serial.write(cmd)
 
 		return True
+
 
 	def install(self, json):
 		if self._serial == None:
@@ -99,6 +145,7 @@ class Core:
 
 		return True
 
+
 	def connect(self):
 		com = None
 
@@ -136,6 +183,7 @@ class Core:
 			self._serial.flushOutput()
 
 		return True
+
 
 	def disconnect(self):
 		if self._serial == None:
