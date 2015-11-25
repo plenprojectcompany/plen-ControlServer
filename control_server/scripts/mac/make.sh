@@ -14,12 +14,16 @@ if [ ! -e $1 ]; then
 	exit 1
 fi 
 
+# リソースファイルに追加するファイル用の設定コマンド生成
+dirPath=$(cd $(dirname $1) && pwd)
+resources="${dirPath}/angularjs,${dirPath}/assets,${dirPath}/gui.html,${dirPath}/PLENUtilities.url,${dirPath}/PLENUtilities.webloc"
+
 # pyファイルをapp化
 if [ -e "setup.py" ]; then
 	rm -f setup.py
 fi
 py2applet --make-setup $1
-python setup.py py2app --dist-dir ./
+python setup.py py2app --dist-dir ./ --packages gevent --resources ${resources}
 
 # app化に成功したかチェック
 withoutExtName=`basename ${1} .py`
@@ -27,10 +31,9 @@ if [ ! -e "${withoutExtName}.app" ]; then
 	echo "build error"
 	exit 1
 fi
-
 # app名をセット（最終出力app名とかぶっている場合リネーム）
 appName="${withoutExtName}.app"
-if [ $appName = $2 ]; then
+if [ $appName = `basename ${2}` ]; then
 	appName="${withoutExtName}_py.app"
 	mv -f "${withoutExtName}.app" ${appName}
 fi
@@ -54,7 +57,7 @@ set app_path to POSIX path of this_folder
 #device_map.jsonをserver本体のリソースフォルダへ保存
 do shell script "cp -f " & app_path & device_map_name & " " & resource_path & device_map_name
 # choose USB or BLE
-set driverResult to (choose from list {"USB", "BLE"} with prompt "Please Choose Driver" default items "USB")
+set driverResult to (choose from list {"USB", "BLE"} with prompt "Please choose driver.\r\r ( Please choose \"USB\" if you want to use \"PLENUtillities\". )" default items "USB")
 if driverResult is false then
 	return
 else if driverResult is equal to {"USB"} then
@@ -82,7 +85,6 @@ if [ ! -e $2 ]; then
 	echo "make wrap-app failed."
 	exit 1
 fi
-
 # 実行appをwrap_appのリソースフォルダへ移動
 mv -f $appName "$2/Contents/Resources/${appName}"
 
