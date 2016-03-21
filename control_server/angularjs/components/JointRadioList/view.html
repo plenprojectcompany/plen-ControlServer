@@ -1,8 +1,0 @@
-﻿<div>
-    <div class="radio" ng-repeat="joint in joint_radio_list.joint_settings_model.joint_settings">
-        <label>
-            <input type="radio" name="radio-angle" ng-model="joint_radio_list.joint_settings_model.controlling" ng-value="$index">
-            {{("0" + ($index + 1).toString()).slice(-2)}}: {{joint.name}}
-        </label>
-    </div>
-</div>
