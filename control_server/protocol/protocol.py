@@ -56,31 +56,31 @@ class Protocol(object):
 
         cmd = self.setMotionHeader(motion)
 
-        for frame, index in enumerate(motion['frames']):
-            frame['_slot']  = motion['slot']
-            frame['_index'] = index
+        for index in range(len(motion['frames'])):
+            motion['frames'][index]['_slot']  = motion['slot']
+            motion['frames'][index]['_index'] = index
 
-            cmd += self.setMotionFrame(frame)
+            cmd += self.setMotionFrame(motion['frames'][index])
 
-        return cmd
+        return str(cmd)
 
     def setMotionFrame(self, frame):
         cmd  = '>MF'
         cmd += '%02x' % frame['_slot']
         cmd += '%02x' % frame['_index']
-        cmd += '%04x' % frame["transition_time_ms"]
+        cmd += '%04x' % frame['transition_time_ms']
 
         for output in frame['outputs']:
             self._values[self._DEVICE_MAP[output['device']]] = c_ushort(output['value']).value
 
         cmd += ''.join(map(lambda v: '%04x' % v, self._values))
 
-        return cmd
+        return str(cmd)
 
     def setMotionHeader(self, header):
         cmd  = '>MH'
         cmd += '%02x' % header['slot']
-        cmd += header['name'].ljust(20)[:19]
+        cmd += header['name'].ljust(20)[:20]
 
         # TODO: `codes`周辺の設定処理をどうするか？
         protocol_code = '000000'
@@ -99,7 +99,7 @@ class Protocol(object):
         cmd += protocol_code
         cmd += '%02x' % header['_frame_length']
 
-        return cmd
+        return str(cmd)
 
     def setMin(self, device, value):
         return '>MI%02x%03x' % (self._DEVICE_MAP[device], (c_ushort(value).value & 0xFFF))
