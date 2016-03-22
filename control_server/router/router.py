@@ -11,7 +11,7 @@ __license__   = 'The MIT License'
 
 
 import logging
-from bottle import (Bottle, request, response, abort)
+from bottle import (Bottle, request, response, abort, debug)
 from empty_motion import MOTION
 
 
@@ -23,6 +23,7 @@ _empty_motion = MOTION
 _driver       = None
 
 router = Bottle()
+debug(True)
 
 
 def enable_cors(fn):
@@ -237,6 +238,46 @@ def metadata_get():
     return response_json
 
 
+@router.route('/v2/connect', method=['OPTIONS', 'GET'])
+@enable_cors
+def connect():
+    '''
+    @brief Connect a driver.
+    '''
+
+    response_json = {
+        'resource': 'driver',
+        'data': {
+            'command': 'connect',
+            'result': _driver.connect()
+        }
+    }
+
+    response.content_type = 'application/json'
+
+    return response_json
+
+
+@router.route('/v2/disconnect', method=['OPTIONS', 'GET'])
+@enable_cors
+def disconnect():
+    '''
+    @brief Disconnect a driver
+    '''
+
+    response_json = {
+        'resource': 'driver',
+        'data': {
+            'command': 'disconnect',
+            'result': _driver.disconnect()
+        }
+    }
+
+    response.content_type = 'application/json'
+
+    return response_json
+
+
 def set_driver(driver):
     '''
     @brief Setter for data transfer driver.
@@ -273,9 +314,7 @@ if __name__ == '__main__':
     sys.path.append(os.pardir)
 
     from drivers.null.core import NullDriver
-    from bottle import debug
 
     _driver = NullDriver()
 
-    debug(True)
     server_worker()
