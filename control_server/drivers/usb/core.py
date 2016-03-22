@@ -80,6 +80,7 @@ class USBDriver(AbstractDriver):
 
         try:
             self._serial.write(self._PROTOCOL.setHome(device, value))
+            time.sleep(0.01)
 
         except serial.serialutil.SerialTimeoutException:
             _LOGGER.error('USB cable is disconnected!')
@@ -135,7 +136,7 @@ class USBDriver(AbstractDriver):
 
             return False
 
-        CMD = self._serial.write(self._PROTOCOL.install(motion))
+        CMD = self._PROTOCOL.install(motion)
 
         # Divide command length by payload size.
         BLOCK, SURPLUS = divmod(len(CMD), 64)
@@ -143,10 +144,11 @@ class USBDriver(AbstractDriver):
         try:
             for INDEX in range(BLOCK):
                 self._serial.write(CMD[64 * INDEX: 64 * (INDEX + 1)])
-                time.sleep(0.01)
+                time.sleep(0.05)
 
-            self._serial.write(CMD[-SURPLUS:])
-            time.sleep(0.01)
+            if SURPLUS:
+                self._serial.write(CMD[-SURPLUS:])
+                time.sleep(0.05)
 
         except serial.serialutil.SerialTimeoutException:
             _LOGGER.error('USB cable is disconnected!')
@@ -166,7 +168,7 @@ class USBDriver(AbstractDriver):
 
         try:
             self._serial.write(self._PROTOCOL.getMotion(slot))
-            time.sleep(0.01)
+            time.sleep(0.1)
 
         except serial.serialutil.SerialTimeoutException:
             _LOGGER.error('USB cable is disconnected!')
@@ -175,8 +177,14 @@ class USBDriver(AbstractDriver):
 
             return None
 
-        if self._serial.in_waiting() > 0:
-            return json.loads(self._serial.read(self._serial.in_waiting()))
+        motion = ''
+
+        while self._serial.in_waiting > 0:
+            motion += self._serial.read(self._serial.in_waiting)
+            time.sleep(0.01)
+
+        if len(motion):
+            return json.loads(motion)
 
         return None
 
@@ -189,7 +197,7 @@ class USBDriver(AbstractDriver):
 
         try:
             self._serial.write(self._PROTOCOL.getVersionInformation())
-            time.sleep(0.01)
+            time.sleep(0.1)
 
         except serial.serialutil.SerialTimeoutException:
             _LOGGER.error('USB cable is disconnected!')
@@ -198,8 +206,14 @@ class USBDriver(AbstractDriver):
 
             return None
 
-        if self._serial.in_waiting() > 0:
-            return json.loads(self._serial.read(self._serial.in_waiting()))
+        version = ''
+
+        while self._serial.in_waiting > 0:
+            version += self._serial.read(self._serial.in_waiting)
+            time.sleep(0.01)
+
+        if len(version):
+            return json.loads(version)
 
         return None
 
