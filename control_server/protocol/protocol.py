@@ -87,7 +87,7 @@ class Protocol(object):
 
         for code in header['codes']:
             if code['func'] == 'loop':
-                protocol_code = '01%02x%02x' % tuple(code['args'])
+                protocol_code = '01%02x%02x' % tuple(code['args'][:2])
 
                 break
 
