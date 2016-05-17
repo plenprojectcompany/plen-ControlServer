@@ -39,7 +39,7 @@ class USBDriver(AbstractDriver):
             return False
 
         try:
-            self._serial.write(self._PROTOCOL.apply(device, value))
+            self._serial.write(self._PROTOCOL.apply(device, int(value)))
             time.sleep(0.01)
 
         except serial.serialutil.SerialTimeoutException:
@@ -59,7 +59,7 @@ class USBDriver(AbstractDriver):
             return False
 
         try:
-            self._serial.write(self._PROTOCOL.applyDiff(device, value))
+            self._serial.write(self._PROTOCOL.applyDiff(device, int(value)))
             time.sleep(0.01)
 
         except serial.serialutil.SerialTimeoutException:
@@ -79,7 +79,7 @@ class USBDriver(AbstractDriver):
             return False
 
         try:
-            self._serial.write(self._PROTOCOL.setHome(device, value))
+            self._serial.write(self._PROTOCOL.setHome(device, int(value)))
             time.sleep(0.01)
 
         except serial.serialutil.SerialTimeoutException:

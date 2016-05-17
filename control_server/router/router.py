@@ -80,11 +80,13 @@ def cmdstream():
         while True:
             try:
                 messages = wsock.receive().split('/')
-                result   = getattr(_driver, messages[0])(messages[1:])
+                result   = getattr(_driver, messages[0])(*messages[1:])
 
                 wsock.send(str(result))
 
-            except:
+            except Exception as e:
+                _LOGGER.exception('An exception was raised!: %s', e)
+
                 _driver.disconnect()
 
                 break
