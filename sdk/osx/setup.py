@@ -18,21 +18,20 @@ from setuptools import setup
 APP = ['./main.py']
 
 DATA_FILES = [
-    './config.json',
-    './device_map.json'
 ]
 
 OPTIONS = {
     'argv_emulation': True,
     'packages'      : 'gevent',
-    'dist_dir'      : './'
+    'dist_dir'      : './',
     'excludes'      : [
         'gevent._socket3',
         '_ssl',
         'difflib',
         'doctest',
         'optparse'
-    ]
+    ],
+    'iconfile':'./assets/app.icns'
 }
 
 setup(
