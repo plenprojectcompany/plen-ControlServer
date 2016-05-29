@@ -1,99 +1,81 @@
 ﻿class JointSettingsModel
 {
-    controlling: number = 0;
+    joint_handle: string = "left_shoulder_pitch";
 
-    joint_settings = [
-        {
+    joint_settings = {
+        "left_shoulder_pitch": {
             "name": "Left Shoulder Pitch",
-            "_name": "left_shoulder_pitch",
             "value": 0
         },
-        {
+        "left_thigh_yaw": {
             "name": "Left Thigh Yaw",
-            "_name": "left_thigh_yaw",
             "value": 0
         },
-        {
+        "left_shoulder_roll": {
             "name": "Left Shoulder Roll",
-            "_name": "left_shoulder_roll",
             "value": 0
         },
-        {
+        "left_elbow_roll": {
             "name": "Left Elbow Roll",
-            "_name": "left_elbow_roll",
             "value": 0
         },
-        {
+        "left_thigh_roll": {
             "name": "Left Thigh Roll",
-            "_name": "left_thigh_roll",
             "value": 0
         },
-        {
+        "left_thigh_pitch": {
             "name": "Left Thigh Pitch",
-            "_name": "left_thigh_pitch",
             "value": 0
         },
-        {
+        "left_knee_pitch": {
             "name": "Left Knee Pitch",
-            "_name": "left_knee_pitch",
             "value": 0
         },
-        {
+        "left_foot_pitch": {
             "name": "Left Foot Pitch",
-            "_name": "left_foot_pitch",
             "value": 0
         },
-        {
+        "left_foot_roll": {
             "name": "Left Foot Roll",
-            "_name": "left_foot_roll",
             "value": 0
         },
-        {
+        "right_shoulder_pitch": {
             "name": "Right Shoulder Pitch",
-            "_name": "right_shoulder_pitch",
             "value": 0
         },
-        {
+        "right_thigh_yaw": {
             "name": "Right Thigh Yaw",
-            "_name": "right_thigh_yaw",
             "value": 0
         },
-        {
+        "right_shoulder_roll": {
             "name": "Right Shoulder Roll",
-            "_name": "right_shoulder_roll",
             "value": 0
         },
-        {
+        "right_elbow_roll": {
             "name": "Right Elbow Roll",
-            "_name": "right_elbow_roll",
             "value": 0
         },
-        {
+        "right_thigh_roll": {
             "name": "Right Thigh Roll",
-            "_name": "right_thigh_roll",
             "value": 0
         },
-        {
+        "right_thigh_pitch": {
             "name": "Right Thigh Pitch",
-            "_name": "right_thigh_pitch",
             "value": 0
         },
-        {
+        "right_knee_pitch": {
             "name": "Right Knee Pitch",
-            "_name": "right_knee_pitch",
             "value": 0
         },
-        {
+        "right_foot_pitch": {
             "name": "Right Foot Pitch",
-            "_name": "right_foot_pitch",
             "value": 0
         },
-        {
+        "right_foot_roll": {
             "name": "Right Foot Roll",
-            "_name": "right_foot_roll",
             "value": 0
         }
-    ];
+    };
 
     static $inject = [
         // none
@@ -106,17 +88,12 @@
 
     setValue(value: number): void
     {
-        this.joint_settings[this.controlling].value = value;
+        this.joint_settings[this.joint_handle].value = value;
     }
 
     getValue(): number
     {
-        return this.joint_settings[this.controlling].value;
-    }
-
-    getName(): string
-    {
-        return this.joint_settings[this.controlling]._name;
+        return this.joint_settings[this.joint_handle].value;
     }
 
     set current(value: any)

@@ -8,7 +8,7 @@ class JointRadioListDirective
         return {
             restrict: "E",
             controller: JointRadioListController,
-            controllerAs: "joint_radio_list",
+            controllerAs: "$ctrl",
             scope: {},
             templateUrl: "./angularjs/components/JointRadioList/view.html",
             replace: true

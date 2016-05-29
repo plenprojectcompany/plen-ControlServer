@@ -1,13 +1,18 @@
 ﻿<div class="form-group">
     <label class="control-label">
-        Set Value:
-        <input type="number" min="-1800" max="1800"
-               ng-model="value_changer.joint_settings_model.current"
-               ng-change="value_changer.onChange()"
-        />
+        Joint Name:
+        {{ $ctrl.getJointName() }}
     </label>
-    <input type="range" min="-1800" max="1800"
-           ng-model="value_changer.joint_settings_model.current"
-           ng-change="value_changer.onChange()"
+    <label class="control-label">
+        Angle:
+        <input type="number" min="-900" max="900"
+               ng-model="$ctrl.joint_settings_model.current"
+               ng-change="$ctrl.onChange()"
+        />
+        [1/10 deg.]
+    </label>
+    <input type="range" min="-900" max="900"
+           ng-model="$ctrl.joint_settings_model.current"
+           ng-change="$ctrl.onChange()"
     />
 </div>

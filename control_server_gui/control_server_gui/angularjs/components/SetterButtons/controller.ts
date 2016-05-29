@@ -19,7 +19,7 @@ class SetterButtonsController
     onClickMax(): void
     {
         this.ctrl_server_service.setMax(
-            this.joint_settings.getName(),
+            this.joint_settings.joint_handle,
             this.joint_settings.getValue()
         );
     }
@@ -27,7 +27,7 @@ class SetterButtonsController
     onClickHome(): void
     {
         this.ctrl_server_service.setHome(
-            this.joint_settings.getName(),
+            this.joint_settings.joint_handle,
             this.joint_settings.getValue()
         );
     }
@@ -35,7 +35,7 @@ class SetterButtonsController
     onClickMin(): void
     {
         this.ctrl_server_service.setMin(
-            this.joint_settings.getName(),
+            this.joint_settings.joint_handle,
             this.joint_settings.getValue()
         );
     }
@@ -43,6 +43,6 @@ class SetterButtonsController
     onClickReset(): void
     {
         this.joint_settings.setValue(0);
-        this.ctrl_server_service.applyNative(this.joint_settings.getName(), 0);
+        this.ctrl_server_service.applyNative(this.joint_settings.joint_handle, 0);
     }
 } 

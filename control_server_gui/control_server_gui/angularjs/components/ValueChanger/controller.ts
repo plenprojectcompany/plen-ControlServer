@@ -19,8 +19,13 @@ class ValueChangerController
     onChange(): void
     {
         this.ctrl_server_service.applyNative(
-            this.joint_settings_model.getName(),
+            this.joint_settings_model.joint_handle,
             this.joint_settings_model.getValue()
         );
+    }
+
+    getJointName(): string
+    {
+        return this.joint_settings_model.joint_settings[this.joint_settings_model.joint_handle]["name"];
     }
 }
