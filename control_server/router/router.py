@@ -11,7 +11,7 @@ __license__   = 'The MIT License'
 
 
 import logging
-from bottle import (Bottle, request, response, abort, debug)
+from bottle import (Bottle, request, response, abort, template, static_file)
 from empty_motion import MOTION
 
 
@@ -23,7 +23,6 @@ _empty_motion = MOTION
 _driver       = None
 
 router = Bottle()
-debug(True)
 
 
 def enable_cors(fn):
@@ -45,6 +44,33 @@ def enable_cors(fn):
             return fn(*args, **kwargs)
 
     return _enable_cors
+
+
+@router.route('/')
+def gui():
+    '''
+    @brief Render GUI of PLEN Utilities.
+    '''
+
+    return template('gui')
+
+
+@router.route('/assets/<file_path:path>')
+def assets(file_path):
+    '''
+    @brief Routing for static files.
+    '''
+
+    return static_file(file_path, root='./assets')
+
+
+@router.route('/angularjs/<file_path:path>')
+def angularjs(file_path):
+    '''
+    @brief Routing for the AngularJS application's scripts.
+    '''
+
+    return static_file(file_path, root='./angularjs')
 
 
 @router.route('/v2/cmdstream')
@@ -315,8 +341,10 @@ if __name__ == '__main__':
 
     sys.path.append(os.pardir)
 
+    from bottle import debug; debug(True)
+
     from drivers.null.core import NullDriver
 
-    _driver = NullDriver()
+    _driver = NullDriver(None, None)
 
     server_worker()
