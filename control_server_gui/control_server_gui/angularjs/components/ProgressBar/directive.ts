@@ -8,7 +8,7 @@ class ProgressBarDirective
         return {
             restrict: "E",
             controller: ProgressBarController,
-            controllerAs: "progress_bar",
+            controllerAs: "$ctrl",
             scope: {},
             templateUrl: "./angularjs/components/ProgressBar/view.html",
             replace: true

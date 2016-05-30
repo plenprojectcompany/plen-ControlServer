@@ -8,7 +8,7 @@ class ValueChangerDirective
         return {
             restrict: "E",
             controller: ValueChangerController,
-            controllerAs: "value_changer",
+            controllerAs: "$ctrl",
             scope: {},
             templateUrl: "./angularjs/components/ValueChanger/view.html",
             replace: true

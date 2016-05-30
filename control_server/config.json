@@ -1,0 +1,7 @@
+{
+    "port"   : 17264,
+    "driver" : {
+        "name"    : "usb",
+        "options" : {}
+    }
+}

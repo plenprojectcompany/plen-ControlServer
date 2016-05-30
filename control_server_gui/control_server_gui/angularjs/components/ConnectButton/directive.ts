@@ -1,23 +1,23 @@
 ﻿/// <reference path="../../index.ts" />
 /// <reference path="./controller.ts" />
 
-class SetterButtonsDirective
+class ConnectButtonDirective
 {
     static getDDO($scope)
     {
         return {
             restrict: "E",
-            controller: SetterButtonsController,
+            controller: ConnectButtonController,
             controllerAs: "$ctrl",
             scope: {},
-            templateUrl: "./angularjs/components/SetterButtons/view.html",
+            templateUrl: "./angularjs/components/ConnectButton/view.html",
             replace: true
         };
     }
 }
 
-angular.module(APP_NAME).directive("setterButtons",
+angular.module(APP_NAME).directive("connectButton",
     [
-        SetterButtonsDirective.getDDO
+        ConnectButtonDirective.getDDO
     ]
 ); 

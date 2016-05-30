@@ -8,7 +8,7 @@ class InstallButtonDirective
         return {
             restrict: "E",
             controller: InstallButtonController,
-            controllerAs: "install_button",
+            controllerAs: "$ctrl",
             scope: {},
             templateUrl: "./angularjs/components/InstallButton/view.html",
             replace: true

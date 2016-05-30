@@ -8,7 +8,7 @@ class LoadButtonDirective
         return {
             restrict: "E",
             controller: LoadButtonController,
-            controllerAs: "load_button",
+            controllerAs: "$ctrl",
             scope: {},
             templateUrl: "./angularjs/components/LoadButton/view.html",
             replace: true
