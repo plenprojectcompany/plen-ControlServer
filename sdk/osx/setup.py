@@ -17,26 +17,24 @@ from setuptools import setup
 
 APP = ['./main.py']
 
-DATA_FILES = [
-]
-
 OPTIONS = {
-    'argv_emulation': True,
-    'packages'      : 'gevent',
-    'dist_dir'      : './',
-    'excludes'      : [
+    'argv_emulation' : True,
+    'packages'       : 'gevent',
+    'excludes'       : [
         'gevent._socket3',
         '_ssl',
+        'pyreadline',
         'difflib',
         'doctest',
-        'optparse'
+        'optparse',
+        'pickle'
     ],
-    'iconfile':'./assets/app.icns'
+    'iconfile'       : './assets/app.icns'
 }
 
+
 setup(
-    app        = APP,
-    data_files = DATA_FILES,
+    app     = APP,
 
     options = {
         'py2app': OPTIONS
