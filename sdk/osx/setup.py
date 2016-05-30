@@ -26,8 +26,7 @@ OPTIONS = {
         'pyreadline',
         'difflib',
         'doctest',
-        'optparse',
-        'pickle'
+        'optparse'
     ],
     'iconfile'       : './assets/app.icns'
 }
