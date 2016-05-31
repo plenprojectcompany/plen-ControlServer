@@ -11,7 +11,6 @@ __copyright__ = 'PLEN Project Company, and all authors.'
 __license__   = 'The MIT License'
 
 
-import platform
 import serial
 import serial.tools.list_ports
 import time
@@ -42,7 +41,10 @@ class USBDriver(AbstractDriver):
             self._serial.write(self._PROTOCOL.apply(device, int(value)))
             time.sleep(0.01)
 
-        except serial.serialutil.SerialTimeoutException:
+        except (
+            serial.serialutil.SerialException,
+            serial.serialutil.SerialTimeoutException
+        ):
             _LOGGER.error('USB cable is disconnected!')
 
             self.disconnect()
@@ -62,7 +64,10 @@ class USBDriver(AbstractDriver):
             self._serial.write(self._PROTOCOL.applyDiff(device, int(value)))
             time.sleep(0.01)
 
-        except serial.serialutil.SerialTimeoutException:
+        except (
+            serial.serialutil.SerialException,
+            serial.serialutil.SerialTimeoutException
+        ):
             _LOGGER.error('USB cable is disconnected!')
 
             self.disconnect()
@@ -82,7 +87,10 @@ class USBDriver(AbstractDriver):
             self._serial.write(self._PROTOCOL.setHome(device, int(value)))
             time.sleep(0.01)
 
-        except serial.serialutil.SerialTimeoutException:
+        except (
+            serial.serialutil.SerialException,
+            serial.serialutil.SerialTimeoutException
+        ):
             _LOGGER.error('USB cable is disconnected!')
 
             self.disconnect()
@@ -101,7 +109,10 @@ class USBDriver(AbstractDriver):
         try:
             self._serial.write(self._PROTOCOL.playMotion(slot))
 
-        except serial.serialutil.SerialTimeoutException:
+        except (
+            serial.serialutil.SerialException,
+            serial.serialutil.SerialTimeoutException
+        ):
             _LOGGER.error('USB cable is disconnected!')
 
             self.disconnect()
@@ -120,7 +131,10 @@ class USBDriver(AbstractDriver):
         try:
             self._serial.write(self._PROTOCOL.stopMotion())
 
-        except serial.serialutil.SerialTimeoutException:
+        except (
+            serial.serialutil.SerialException,
+            serial.serialutil.SerialTimeoutException
+        ):
             _LOGGER.error('USB cable is disconnected!')
 
             self.disconnect()
@@ -150,7 +164,10 @@ class USBDriver(AbstractDriver):
                 self._serial.write(CMD[-SURPLUS:])
                 time.sleep(0.05)
 
-        except serial.serialutil.SerialTimeoutException:
+        except (
+            serial.serialutil.SerialException,
+            serial.serialutil.SerialTimeoutException
+        ):
             _LOGGER.error('USB cable is disconnected!')
 
             self.disconnect()
@@ -170,7 +187,10 @@ class USBDriver(AbstractDriver):
             self._serial.write(self._PROTOCOL.getMotion(slot))
             time.sleep(0.1)
 
-        except serial.serialutil.SerialTimeoutException:
+        except (
+            serial.serialutil.SerialException,
+            serial.serialutil.SerialTimeoutException
+        ):
             _LOGGER.error('USB cable is disconnected!')
 
             self.disconnect()
@@ -199,7 +219,10 @@ class USBDriver(AbstractDriver):
             self._serial.write(self._PROTOCOL.getVersionInformation())
             time.sleep(0.1)
 
-        except serial.serialutil.SerialTimeoutException:
+        except (
+            serial.serialutil.SerialException,
+            serial.serialutil.SerialTimeoutException
+        ):
             _LOGGER.error('USB cable is disconnected!')
 
             self.disconnect()
