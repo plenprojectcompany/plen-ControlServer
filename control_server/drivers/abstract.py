@@ -55,3 +55,7 @@ class AbstractDriver(object):
     @abstractmethod
     def disconnect(self):
         pass
+
+    @abstractmethod
+    def upload(self, code):
+        pass
