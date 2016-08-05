@@ -306,6 +306,26 @@ def disconnect():
     return response_json
 
 
+@router.route('/v2/upload', method=['OPTIONS', 'PUT'])
+@enable_cors
+def upload():
+    '''
+    @brief Upload a arduino code
+    '''
+
+    response_json = {
+        'resource': 'driver',
+        'data': {
+            'command': 'upload',
+            'result': _driver.upload(request.body.read())
+        }
+    }
+
+    response.content_type = 'application/json'
+
+    return response_json
+
+
 def set_driver(driver):
     '''
     @brief Setter for data transfer driver.

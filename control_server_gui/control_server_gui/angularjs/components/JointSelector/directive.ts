@@ -12,7 +12,7 @@ class JointSelectorDirective
             scope: {},
             templateUrl: "./angularjs/components/JointSelector/view.html",
             replace: true,
-            link: ($scope: ng.IScope, $element: JQuery, attrs, $ctrl: JointSelectorController) =>
+            link: ($scope: ng.IScope, $element: JQuery, _3, $ctrl: JointSelectorController) =>
             {
                 var $joint_buttons: JQuery = $element.find('.joint_button');
 

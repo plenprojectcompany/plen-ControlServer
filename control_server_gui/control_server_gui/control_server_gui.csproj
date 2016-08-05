@@ -64,8 +64,11 @@
     <TypeScriptCompile Include="angularjs\components\ValueChanger\directive.ts" />
     <TypeScriptCompile Include="angularjs\index.ts" />
     <TypeScriptCompile Include="angularjs\models\JointSettings.Model.ts" />
+    <TypeScriptCompile Include="angularjs\models\MotionSchema.Model.ts" />
+    <TypeScriptCompile Include="angularjs\models\MotionStore.Model.ts" />
     <TypeScriptCompile Include="angularjs\services\PLENControlServer.Service.ts" />
     <TypeScriptCompile Include="angularjs\services\SharedJointSettings.Service.ts" />
+    <TypeScriptCompile Include="angularjs\services\SharedMotionStore.Service.ts" />
     <TypeScriptCompile Include="Scripts\typings\angularjs\angular-animate.d.ts" />
     <TypeScriptCompile Include="Scripts\typings\angularjs\angular-cookies.d.ts" />
     <TypeScriptCompile Include="Scripts\typings\angularjs\angular-mocks.d.ts" />

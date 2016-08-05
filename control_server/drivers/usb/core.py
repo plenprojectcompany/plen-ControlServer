@@ -13,9 +13,12 @@ __license__   = 'The MIT License'
 
 import serial
 import serial.tools.list_ports
+import os
+import subprocess
 import time
 import json
 import logging
+import shutil
 from drivers.abstract import AbstractDriver
 from protocol.protocol import Protocol
 
@@ -29,6 +32,18 @@ class USBDriver(AbstractDriver):
     def __init__(self, device_map, options):
         self._serial   = None
         self._PROTOCOL = Protocol(device_map)
+        self._OPTIONS  = options
+
+
+    def _findDevice(self):
+        com = None
+
+        # TODO: Will fix device finding method.
+        for DEVICE in list(serial.tools.list_ports.comports()):
+            if 'Arduino Micro' in DEVICE[1]:
+                com = DEVICE[0]
+
+        return com
 
 
     def apply(self, device, value):
@@ -242,16 +257,14 @@ class USBDriver(AbstractDriver):
 
 
     def connect(self):
-        for DEVICE in list(serial.tools.list_ports.comports()):
-            if 'Arduino Micro' in DEVICE[1]:
-                COM = DEVICE[0]
+        self.disconnect()
 
-        if not 'COM' in locals():
+        COM = self._findDevice()
+
+        if COM is None:
             _LOGGER.error('PLEN is not found!')
 
             return False
-
-        self.disconnect()
 
         self._serial = serial.Serial(port=COM, baudrate=2000000, timeout=1)
         self._serial.reset_input_buffer()
@@ -270,3 +283,36 @@ class USBDriver(AbstractDriver):
         self._serial = None
 
         return True
+
+
+    def upload(self, code):
+        self.disconnect()
+
+        COM = self._findDevice()
+
+        if COM is None:
+            _LOGGER.error('PLEN is not found!')
+
+            return False
+
+        os.mkdir('temp')
+
+        with open('./temp/temp.ino', 'w') as fout:
+            fout.write(code)
+
+        proc = subprocess.Popen(
+            [
+                self._OPTIONS['compiler']['path'],
+                '--port',   COM,
+                '--board',  'arduino:avr:micro',
+                '--upload', os.path.realpath('./temp/temp.ino')
+            ],
+            stdout = subprocess.PIPE,
+            stderr = subprocess.STDOUT
+        )
+
+        proc.wait()
+
+        shutil.rmtree('temp')
+
+        return proc.stdout.read().decode('shift-jis').encode('utf-8')

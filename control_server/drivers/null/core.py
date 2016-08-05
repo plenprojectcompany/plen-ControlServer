@@ -52,3 +52,6 @@ class NullDriver(AbstractDriver):
 
     def disconnect(self):
         return True
+
+    def upload(self, code):
+        return True

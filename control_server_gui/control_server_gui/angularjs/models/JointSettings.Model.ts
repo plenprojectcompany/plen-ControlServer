@@ -77,9 +77,6 @@
         }
     };
 
-    static $inject = [
-        // none
-    ];
 
     constructor()
     {
