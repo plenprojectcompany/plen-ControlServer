@@ -3,7 +3,7 @@
 
 class LoadButtonDirective
 {
-    static getDDO($scope)
+    static getDDO()
     {
         return {
             restrict: "E",
@@ -11,7 +11,16 @@ class LoadButtonDirective
             controllerAs: "$ctrl",
             scope: {},
             templateUrl: "./angularjs/components/LoadButton/view.html",
-            replace: true
+            replace: true,
+            link: (_1, $element: JQuery, _3, $ctrl: LoadButtonController) =>
+            {
+                /*!
+                    @attention
+                    You need to set the change event handler yourself,
+                    because ng-change directive is not resolved automatically if without ng-model directive.
+                */
+                $element.find('input').on('change', $ctrl.onChange.bind($ctrl));
+            }
         };
     }
 }

@@ -46,7 +46,7 @@ var PLENControlServerService = (function () {
         if (success_callback === void 0) { success_callback = null; }
         if (this._state === 1 /* CONNECTED */) {
             this._state = 2 /* WAITING */;
-            this.$http.put("//" + this._ip_addr + "/v2/install", json).success(function (response) {
+            this.$http.put("//" + this._ip_addr + "/v2/motions/" + json.slot.toString(), json).success(function (response) {
                 _this._state = 1 /* CONNECTED */;
                 if (response.data.result === true) {
                     if (!_.isNull(success_callback)) {
@@ -169,11 +169,293 @@ var ConnectButtonDirective = (function () {
 angular.module(APP_NAME).directive("connectButton", [
     ConnectButtonDirective.getDDO
 ]);
-var InstallButtonController = (function () {
-    function InstallButtonController() {
+var motion_schema = {
+    "description": "Structure of a motion",
+    "type": "object",
+    "properties": {
+        "slot": {
+            "description": "Index that the motion is placed",
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 89
+        },
+        "name": {
+            "description": "Name of the motion",
+            "type": "string",
+            "minLength": 0,
+            "maxLength": 20
+        },
+        "@frame_length": {
+            "description": "Length of the frames",
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 20,
+            "optional": true
+        },
+        "codes": {
+            "description": "Array of code",
+            "type": "array",
+            "items": {
+                "description": "Structure of a code",
+                "type": "object",
+                "properties": {
+                    "mathod": {
+                        "description": "Method name you would like to call",
+                        "type": "string"
+                    },
+                    "arguments": {
+                        "description": "arguments of the method",
+                        "type": "array",
+                        "items": {
+                            "type": "any"
+                        }
+                    }
+                }
+            }
+        },
+        "frames": {
+            "description": "Array of frame",
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 20,
+            "items": {
+                "description": "Structure of a frame",
+                "type": "object",
+                "properties": {
+                    "@index": {
+                        "description": "Index of the frame",
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 19,
+                        "optional": true
+                    },
+                    "transition_time_ms": {
+                        "description": "Time of transition to the frame",
+                        "type": "integer",
+                        "minimum": 32,
+                        "maximum": 65535
+                    },
+                    "stop_flag": {
+                        "description": "To select using stop flag or not (Working Draft)",
+                        "type": "boolean",
+                        "optional": true
+                    },
+                    "auto_balance": {
+                        "description": "To select using auto balancer or not (Working Draft)",
+                        "type": "boolean",
+                        "optional": true
+                    },
+                    "outputs": {
+                        "description": "Array of output",
+                        "type": "array",
+                        "items": {
+                            "description": "Structure of a output",
+                            "type": "object",
+                            "properties": {
+                                "device": {
+                                    "description": "Name of the output device",
+                                    "type": "string"
+                                },
+                                "value": {
+                                    "description": "Value of the output",
+                                    "type": "integer"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+};
+/// <reference path="MotionSchema.Model.ts" />
+var MotionStore = (function () {
+    function MotionStore() {
+        this._typeChecker = {
+            "object": _.isObject.bind(_),
+            "array": _.isArray.bind(_),
+            "integer": _.isNumber.bind(_),
+            "string": _.isString.bind(_),
+            "boolean": _.isBoolean.bind(_),
+            "any": function () {
+                return true;
+            }
+        };
+        this._containsChecker = {
+            "object": function (schema, _object) {
+                var expected_keys = _.keys(schema['properties']);
+                var result = true;
+                _.forEach(expected_keys, function (expected_key) {
+                    if (result === false)
+                        return;
+                    if (!_.has(_object, expected_key)) {
+                        result = Boolean(schema['properties'][expected_key]['optional']);
+                    }
+                });
+                return result;
+            },
+            "array": function (schema, _array) {
+                var fulfill_minItems = true;
+                var fulfill_maxItems = true;
+                if (_.has(schema, 'minItems')) {
+                    fulfill_minItems = (schema['minItems'] <= _array.length);
+                }
+                if (_.has(schema, 'maxItems')) {
+                    fulfill_maxItems = (_array.length <= schema['maxItems']);
+                }
+                return (fulfill_minItems && fulfill_maxItems);
+            },
+            "integer": function (schema, _integer) {
+                var fulfill_minimum = true;
+                var fulfill_maximum = true;
+                if (_.has(schema, 'minimum')) {
+                    fulfill_minimum = (schema['minimum'] <= _integer);
+                }
+                if (_.has(schema, 'maximum')) {
+                    fulfill_maximum = (_integer <= schema['maximum']);
+                }
+                return (fulfill_minimum && fulfill_maximum);
+            },
+            "string": function (schema, _string) {
+                var fulfill_minLength = true;
+                var fulfill_maxLength = true;
+                if (_.has(schema, 'minLength')) {
+                    fulfill_minLength = (schema['minLength'] <= _string.length);
+                }
+                if (_.has(schema, 'maxLength')) {
+                    fulfill_maxLength = (_string.length <= schema['maxLength']);
+                }
+                return (fulfill_minLength && fulfill_maxLength);
+            },
+            "boolean": function () {
+                return true;
+            },
+            "any": function () {
+                return true;
+            }
+        };
+        this._typeTraversable = {
+            "object": function (schema, _object) {
+                var child_schema = schema['properties'];
+                var expected_keys = _.keys(child_schema);
+                var traversable = [];
+                _.forEach(expected_keys, function (expected_key) {
+                    traversable.push({
+                        "schema": child_schema[expected_key],
+                        "json": _object[expected_key]
+                    });
+                });
+                return traversable;
+            },
+            "array": function (schema, _array) {
+                var child_schema = schema['items'];
+                var traversable = [];
+                _.forEach(_array, function (item) {
+                    traversable.push({
+                        "schema": child_schema,
+                        "json": item
+                    });
+                });
+                return traversable;
+            },
+            "integer": function (schema, _object) {
+                return [];
+            },
+            "string": function (schema, _object) {
+                return [];
+            },
+            "boolean": function (schema, _object) {
+                return [];
+            },
+            "any": function (schema, _object) {
+                return [];
+            }
+        };
+        this.motions = [];
         // noop.
     }
+    MotionStore.prototype._validateType = function (schema, json) {
+        return this._typeChecker[schema['type']](json);
+    };
+    MotionStore.prototype._validateContains = function (schema, json) {
+        if (this._validateType(schema, json)) {
+            return this._containsChecker[schema['type']](schema, json);
+        }
+        else {
+            return Boolean(schema['optional']);
+        }
+        return false;
+    };
+    MotionStore.prototype._traverse = function (schema, json) {
+        var _this = this;
+        if (!this._validateContains(schema, json)) {
+            console.log('Bad format!:\n - schema = %O\n - json = %O', schema, json);
+            throw "Bad format!";
+        }
+        var traversables = this._typeTraversable[schema['type']](schema, json);
+        _.forEach(traversables, function (traversable) {
+            _this._traverse(traversable['schema'], traversable['json']);
+        });
+    };
+    MotionStore.prototype.validate = function (motion) {
+        try {
+            this._traverse(motion_schema, motion);
+        }
+        catch (exception) {
+            return false;
+        }
+        return true;
+    };
+    return MotionStore;
+})();
+/// <reference path="../index.ts" />
+/// <reference path="../models/MotionStore.Model.ts" />
+angular.module(APP_NAME).service("SharedMotionStoreService", MotionStore);
+/// <reference path="../../services/PLENControlServer.Service.ts" />
+/// <reference path="../../services/SharedMotionStore.Service.ts" />
+var InstallButtonController = (function () {
+    function InstallButtonController($scope, $rootScope, ctrl_server_service, motion_store) {
+        var _this = this;
+        this.$rootScope = $rootScope;
+        this.ctrl_server_service = ctrl_server_service;
+        this.motion_store = motion_store;
+        this._progress_count = 0.0;
+        this._motions_count = 0;
+        $scope.$on("InstallFinished", function () {
+            _this._onInstallFinished();
+        });
+    }
+    InstallButtonController.prototype._onInstallFinished = function () {
+        this._progress_count++;
+        this.$rootScope.$broadcast('InstalledProgressAdvances', this._progress_count / this._motions_count);
+        if (this._progress_count === this._motions_count) {
+            alert('Installation of all motion files was finished!');
+            this.$rootScope.$broadcast('InstalledProgressAdvances', 0);
+        }
+    };
+    InstallButtonController.prototype.onClick = function () {
+        var _this = this;
+        this._progress_count = 0.0;
+        this._motions_count = this.motion_store.motions.length;
+        var installRoutine = function () {
+            if (_this.motion_store.motions.length === 0) {
+                return;
+            }
+            if (_this.ctrl_server_service.getStatus() !== 1 /* CONNECTED */) {
+                return;
+            }
+            _this.ctrl_server_service.install(_this.motion_store.motions.pop(), installRoutine);
+        };
+        installRoutine();
+    };
+    InstallButtonController.prototype.getStoredMotionsCount = function () {
+        return (this.motion_store.motions.length) ? ' (' + this.motion_store.motions.length.toString() + ')' : '';
+    };
     InstallButtonController.$inject = [
+        "$scope",
+        "$rootScope",
+        "PLENControlServerService",
+        "SharedMotionStoreService"
     ];
     return InstallButtonController;
 })();
@@ -297,8 +579,6 @@ var JointSettingsModel = (function () {
         enumerable: true,
         configurable: true
     });
-    JointSettingsModel.$inject = [
-    ];
     return JointSettingsModel;
 })();
 /// <reference path="../index.ts" />
@@ -362,7 +642,7 @@ var JointSelectorDirective = (function () {
             scope: {},
             templateUrl: "./angularjs/components/JointSelector/view.html",
             replace: true,
-            link: function ($scope, $element, attrs, $ctrl) {
+            link: function ($scope, $element, _3, $ctrl) {
                 var $joint_buttons = $element.find('.joint_button');
                 /*!
                     @attention
@@ -382,11 +662,40 @@ var JointSelectorDirective = (function () {
 angular.module(APP_NAME).directive("jointSelector", [
     JointSelectorDirective.getDDO
 ]);
+/// <reference path="../../services/SharedMotionStore.Service.ts" />
 var LoadButtonController = (function () {
-    function LoadButtonController() {
+    function LoadButtonController($scope, motion_store) {
+        this.$scope = $scope;
+        this.motion_store = motion_store;
         // noop.
     }
+    LoadButtonController.prototype.onChange = function (event) {
+        var _this = this;
+        var files = event.target.files;
+        var files_load_count = 0;
+        var onLoadCallback = function (event) {
+            files_load_count++;
+            var motion = JSON.parse(event.target.result);
+            if (_this.motion_store.validate(motion)) {
+                _this.motion_store.motions.push(motion);
+            }
+            if (files_load_count === files.length) {
+                _this.$scope.$apply();
+            }
+        };
+        _.each(files, function (file) {
+            /*!
+                @attention
+                You need to create some FileReader instances to avoid busy wait error.
+            */
+            var reader = new FileReader();
+            reader.onload = onLoadCallback;
+            reader.readAsText(file);
+        });
+    };
     LoadButtonController.$inject = [
+        "$scope",
+        "SharedMotionStoreService",
     ];
     return LoadButtonController;
 })();
@@ -395,14 +704,22 @@ var LoadButtonController = (function () {
 var LoadButtonDirective = (function () {
     function LoadButtonDirective() {
     }
-    LoadButtonDirective.getDDO = function ($scope) {
+    LoadButtonDirective.getDDO = function () {
         return {
             restrict: "E",
             controller: LoadButtonController,
             controllerAs: "$ctrl",
             scope: {},
             templateUrl: "./angularjs/components/LoadButton/view.html",
-            replace: true
+            replace: true,
+            link: function (_1, $element, _3, $ctrl) {
+                /*!
+                    @attention
+                    You need to set the change event handler yourself,
+                    because ng-change directive is not resolved automatically if without ng-model directive.
+                */
+                $element.find('input').on('change', $ctrl.onChange.bind($ctrl));
+            }
         };
     };
     return LoadButtonDirective;
@@ -411,10 +728,21 @@ angular.module(APP_NAME).directive("loadButton", [
     LoadButtonDirective.getDDO
 ]);
 var ProgressBarController = (function () {
-    function ProgressBarController() {
-        // noop.
+    function ProgressBarController($scope) {
+        var _this = this;
+        this._installed_progress = 0;
+        $scope.$on('InstalledProgressAdvances', function (event, data) {
+            _this._onInstalledProgressAdvances(event, data);
+        });
     }
+    ProgressBarController.prototype._onInstalledProgressAdvances = function (event, data) {
+        this._installed_progress = Math.round(data * 100);
+    };
+    ProgressBarController.prototype.getInstalledProgressPercent = function () {
+        return this._installed_progress.toString() + '%';
+    };
     ProgressBarController.$inject = [
+        "$scope"
     ];
     return ProgressBarController;
 })();

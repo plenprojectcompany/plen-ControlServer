@@ -67,7 +67,7 @@ class PLENControlServerService
         {
             this._state = SERVER_STATE.WAITING;
 
-            this.$http.put("//" + this._ip_addr + "/v2/install", json)
+            this.$http.put("//" + this._ip_addr + "/v2/motions/" + json.slot.toString(), json)
                 .success((response: any) =>
                 {
                     this._state = SERVER_STATE.CONNECTED;
