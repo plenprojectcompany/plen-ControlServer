@@ -295,6 +295,7 @@ class USBDriver(AbstractDriver):
 
             return False
 
+        shutil.rmtree('temp', ignore_errors=True)
         os.mkdir('temp')
 
         with open('./temp/temp.ino', 'w') as fout:
@@ -312,7 +313,5 @@ class USBDriver(AbstractDriver):
         )
 
         proc.wait()
-
-        shutil.rmtree('temp')
 
         return proc.stdout.read().decode('shift-jis').encode('utf-8')
