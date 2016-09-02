@@ -19,6 +19,7 @@ import time
 import json
 import logging
 import shutil
+from platform import system
 from drivers.abstract import AbstractDriver
 from protocol.protocol import Protocol
 
@@ -26,6 +27,8 @@ from protocol.protocol import Protocol
 # Create module level instances.
 # =============================================================================
 _LOGGER = logging.getLogger('plen-ControlServer').getChild(__name__)
+
+_OS_TYPE = system()
 
 
 class USBDriver(AbstractDriver):
@@ -168,11 +171,12 @@ class USBDriver(AbstractDriver):
         CMD = self._PROTOCOL.install(motion)
 
         # Divide command length by payload size.
-        BLOCK, SURPLUS = divmod(len(CMD), 64)
+        PAYLOAD = 32
+        BLOCK, SURPLUS = divmod(len(CMD), PAYLOAD)
 
         try:
             for INDEX in range(BLOCK):
-                self._serial.write(CMD[64 * INDEX: 64 * (INDEX + 1)])
+                self._serial.write(CMD[PAYLOAD * INDEX: PAYLOAD * (INDEX + 1)])
                 time.sleep(0.05)
 
             if SURPLUS:
@@ -314,4 +318,8 @@ class USBDriver(AbstractDriver):
 
         proc.wait()
 
-        return proc.stdout.read().decode('shift-jis').encode('utf-8')
+
+        if _OS_TYPE == 'Windows':
+            return proc.stdout.read().decode('shift-jis').encode('utf-8')
+
+        return proc.stdout.read()
