@@ -83,7 +83,7 @@ class _IntegerValidater(_ValidaterBase):
 
 class _StringValidater(_ValidaterBase):
     def validate_type(self, obj):
-        return isinstance(obj, str)
+        return (isinstance(obj, str) or isinstance(obj, unicode))
 
     def validate_contains(self, obj):
         len_obj = len(obj)
@@ -247,3 +247,27 @@ MOTION_SCHEMA = {
         }
     }
 }
+
+
+if __name__ == '__main__':
+    import sys
+    import json
+    from argparse import ArgumentParser
+
+    sys.stderr = open('nul', 'w') # For windows only
+
+    arg_parser = ArgumentParser()
+    arg_parser.add_argument(
+        '-f', '--files',
+        dest     = 'files',
+        type     = file,
+        nargs    = '+',
+        required = True,
+        metavar  = '<FILE>',
+        help     = 'Please set any motion files you would like to validate.'
+    )
+
+    args = arg_parser.parse_args()
+
+    for file in args.files:
+        print('"{0}": {1}'.format(file.name, validate(json.load(file))))

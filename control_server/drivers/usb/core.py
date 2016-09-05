@@ -22,6 +22,7 @@ import shutil
 from platform import system
 from drivers.abstract import AbstractDriver
 from protocol.protocol import Protocol
+from models.motion_schema import validate
 
 
 # Create module level instances.
@@ -165,6 +166,11 @@ class USBDriver(AbstractDriver):
     def install(self, motion):
         if self._serial is None:
             _LOGGER.error('Serial connection is disabled!')
+
+            return False
+
+        if not validate(motion):
+            _LOGGER.error('Motion schema is wrong!')
 
             return False
 
