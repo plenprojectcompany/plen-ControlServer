@@ -381,7 +381,7 @@ var MotionStore = (function () {
         if (this._validateType(schema, json)) {
             return this._containsChecker[schema['type']](schema, json);
         }
-        else {
+        else if (_.isUndefined(json)) {
             return Boolean(schema['optional']);
         }
         return false;
