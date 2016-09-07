@@ -27,7 +27,7 @@ cd ./dist
 mv main.exe ControlServer.exe
 mkdir logs
 mkdir views
-cat << __URL_FILE_EOL__ > PLENUtilities.url
+cat << __URL_FILE_EOL__ > PLEN_Utils.url
 [InternetShortcut]
 URL=http://localhost:17264/
 __URL_FILE_EOL__
