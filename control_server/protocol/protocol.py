@@ -52,13 +52,13 @@ class Protocol(object):
         return '>MA%02x%03x' % (self._DEVICE_MAP[device], (c_ushort(value).value & 0xFFF))
 
     def install(self, motion):
-        motion['_frame_length'] = len(motion['frames'])
+        motion['@frame_length'] = len(motion['frames'])
 
         cmd = self.setMotionHeader(motion)
 
         for index in range(len(motion['frames'])):
-            motion['frames'][index]['_slot']  = motion['slot']
-            motion['frames'][index]['_index'] = index
+            motion['frames'][index]['@slot']  = motion['slot']
+            motion['frames'][index]['@index'] = index
 
             cmd += self.setMotionFrame(motion['frames'][index])
 
@@ -66,8 +66,8 @@ class Protocol(object):
 
     def setMotionFrame(self, frame):
         cmd  = '>MF'
-        cmd += '%02x' % frame['_slot']
-        cmd += '%02x' % frame['_index']
+        cmd += '%02x' % frame['@slot']
+        cmd += '%02x' % frame['@index']
         cmd += '%04x' % frame['transition_time_ms']
 
         for output in frame['outputs']:
@@ -82,22 +82,21 @@ class Protocol(object):
         cmd += '%02x' % header['slot']
         cmd += header['name'].ljust(20)[:20]
 
-        # TODO: `codes`周辺の設定処理をどうするか？
-        protocol_code = '000000'
+        protocol_codes = [
+            '0000000', # For loop method
+            '000',     # For jump method
+            '0'        # For extra methods
+        ]
 
         for code in header['codes']:
-            if code['func'] == 'loop':
-                protocol_code = '01%02x%02x' % tuple(code['args'][:2])
+            if code['method'] == 'loop':
+                protocol_codes[0] = '1{:02x}{:02x}{:02x}'.format(*(code['arguments'][:3]))
 
-                break
+            if code['method'] == 'jump':
+                protocol_codes[1] = '1{:02x}'.format(code['arguments'][0])
 
-            if code['func'] == 'jump':
-                protocol_code = '02%02x00' % code['args'][0]
-
-                break
-
-        cmd += protocol_code
-        cmd += '%02x' % header['_frame_length']
+        cmd += ''.join(protocol_codes)
+        cmd += '%02x' % header['@frame_length']
 
         return str(cmd)
 
@@ -112,3 +111,35 @@ class Protocol(object):
 
     def getVersionInformation(self):
         return '<VI'
+
+
+if __name__ == '__main__':
+    import os
+    from json import load
+    from argparse import ArgumentParser
+
+    arg_parser = ArgumentParser()
+    arg_parser.add_argument(
+        '-f', '--file',
+        dest     = 'file',
+        type     = file,
+        required = True,
+        metavar  = '<FILE>',
+        help     = 'Please set any motion files you would like to convert.'
+    )
+
+
+    # Get device mapping.
+    # -------------------------------------------------------------------------
+    if os.path.isfile('device_map.json'):
+        with open('device_map.json', 'r') as fin:
+            DEVICE_MAP = load(fin)
+    else:
+        exit()
+
+
+    # Convert a motion file to the protocol.
+    # -------------------------------------------------------------------------
+    args = arg_parser.parse_args()
+
+    print(Protocol(DEVICE_MAP).install(load(args.file)))
