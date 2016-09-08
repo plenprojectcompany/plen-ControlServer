@@ -1,5 +1,5 @@
 "use strict";
-var APP_NAME = "ControlServerGUI";
+var APP_NAME = "PLEN Utils";
 angular.module(APP_NAME, []);
 /// <reference path="../index.ts" />
 var SERVER_STATE;
@@ -381,7 +381,7 @@ var MotionStore = (function () {
         if (this._validateType(schema, json)) {
             return this._containsChecker[schema['type']](schema, json);
         }
-        else {
+        else if (_.isUndefined(json)) {
             return Boolean(schema['optional']);
         }
         return false;

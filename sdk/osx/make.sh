@@ -31,7 +31,7 @@ cp device_map.json ./dist
 cd ./dist
 mkdir ${PY_NAME}.app/Contents/Resources/logs
 mkdir ${PY_NAME}.app/Contents/Resources/views
-cat << __URL_FILE_EOL__ > PLENUtilities.url
+cat << __URL_FILE_EOL__ > PLEN_Utils.url
 [InternetShortcut]
 URL=http://localhost:17264/
 __URL_FILE_EOL__

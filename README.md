@@ -1,9 +1,25 @@
 Control Server | PLEN Project Company Inc.
 ===============================================================================
 
+A communication tool between HTTP and Serial for PLEN series robots.
+
+## How to Use
+
+1. Download latest version of the application from [here](https://github.com/plenprojectcompany/plen-ControlServer/releases).
+2. Unzip the downloaded file.
+3. Run the `ControLServer.exe` or `ControlServer.app`.
+    - If you are an OSX user, you need to run the application by following steps.
+    - Click on the application's icon with `ctrl` key.
+    - Choose `open` from menu items. (Using this method, you can turn off security alert temporary.)
+4. Connect your PLEN and a laptop using USB type micro B cable.
+5. Open the `PLEN_Utils.url`.
+
+If you would like to use the application as a tuning up tool, Please [see also...](http://plen.jp/playground/wiki/tutorials/plen2/tune)
+
 ## Copyright (c) 2015,
 - [Kazuyuki TAKASE](https://github.com/Guvalif)
 - [Yugo KAJIWARA](https://github.com/musubi05)
+- [Kazuma TAKAHARA](https://github.com/kzm4269)
 - [PLEN Project Company](https://plen.jp)
 
 ## Build Environment

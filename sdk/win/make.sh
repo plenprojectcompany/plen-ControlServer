@@ -5,6 +5,11 @@
 # license   : The MIT License
 
 
+# Set environment variable & shell variable.
+# =============================================================================
+export APP_VERSION=`git tag | tail -n1`
+APP_VERSION=${APP_VERSION:1}
+
 cd ../../
 REPOSITORY_ROOT=`pwd`
 
@@ -27,7 +32,7 @@ cd ./dist
 mv main.exe ControlServer.exe
 mkdir logs
 mkdir views
-cat << __URL_FILE_EOL__ > PLENUtilities.url
+cat << __URL_FILE_EOL__ > PLEN_Utils.url
 [InternetShortcut]
 URL=http://localhost:17264/
 __URL_FILE_EOL__
@@ -51,8 +56,7 @@ cp -r assets "${REPOSITORY_ROOT}/control_server/dist/"
 # Rename the packaged application with version number.
 # =============================================================================
 cd "${REPOSITORY_ROOT}/control_server/"
-APP_VERSION=`git tag | tail -n1`
-mv dist ControlServer_Win_${APP_VERSION}
+mv dist ControlServer_Win_v${APP_VERSION}
 
 
 # Show the prompt message.
