@@ -4,6 +4,7 @@ Copyright (c) 2015,
 
 - [Kazuyuki TAKASE](https://github.com/Guvalif)
 - [Yugo KAJIWARA](https://github.com/musubi05)
+- [Kazuma TAKAHARA](https://github.com/kzm4269)
 - [PLEN Project Company Inc.](https://plen.jp)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy

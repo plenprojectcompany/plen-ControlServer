@@ -10,6 +10,7 @@ __copyright__ = 'PLEN Project Company, and all authors.'
 __license__   = 'The MIT License'
 
 
+import os
 from distutils.core import setup
 import py2exe
 
@@ -32,7 +33,7 @@ options = {
 
 setup(
     name        = 'Control Server',
-    version     = '2.0.0',
+    version     = os.environ.get('APP_VERSION'),
     description = 'A communication tool between HTTP and Serial for PLEN.',
     author      = 'PLEN Project Company',
 

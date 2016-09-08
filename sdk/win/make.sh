@@ -5,6 +5,11 @@
 # license   : The MIT License
 
 
+# Set environment variable & shell variable.
+# =============================================================================
+export APP_VERSION=`git tag | tail -n1`
+APP_VERSION=${APP_VERSION:1}
+
 cd ../../
 REPOSITORY_ROOT=`pwd`
 
@@ -51,8 +56,7 @@ cp -r assets "${REPOSITORY_ROOT}/control_server/dist/"
 # Rename the packaged application with version number.
 # =============================================================================
 cd "${REPOSITORY_ROOT}/control_server/"
-APP_VERSION=`git tag | tail -n1`
-mv dist ControlServer_Win_${APP_VERSION}
+mv dist ControlServer_Win_v${APP_VERSION}
 
 
 # Show the prompt message.
