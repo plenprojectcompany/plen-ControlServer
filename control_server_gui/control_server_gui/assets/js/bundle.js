@@ -199,7 +199,7 @@ var motion_schema = {
                 "description": "Structure of a code",
                 "type": "object",
                 "properties": {
-                    "mathod": {
+                    "method": {
                         "description": "Method name you would like to call",
                         "type": "string"
                     },
