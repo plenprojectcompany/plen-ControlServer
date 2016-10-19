@@ -41,6 +41,9 @@ class NullDriver(AbstractDriver):
     def install(self, motion):
         return True
 
+    def resetJointSettings(self):
+        return True
+
     def getMotion(self, slot):
         return {}
 

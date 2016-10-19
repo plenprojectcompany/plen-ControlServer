@@ -106,7 +106,7 @@ def cmdstream():
         while True:
             try:
                 messages = wsock.receive().split('/')
-                result   = getattr(_driver, messages[0])(*messages[1:])
+                result   = getattr(_driver, messages[0])(*messages[1:]) if (len(messages) == 1) else getattr(_driver, messages[0])()
 
                 wsock.send(str(result))
 
