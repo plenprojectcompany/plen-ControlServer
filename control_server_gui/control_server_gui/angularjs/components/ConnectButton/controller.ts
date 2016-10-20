@@ -6,19 +6,19 @@ class ConnectButtonController
         "PLENControlServerService"
     ];
 
-    constructor(public server: PLENControlServerService)
+    constructor(private _server: PLENControlServerService)
     {
         // noop.
     }
 
     getServerStatus(): string
     {
-        if (this.server.getStatus() === SERVER_STATE.CONNECTED)
+        if (this._server.getStatus() === SERVER_STATE.CONNECTED)
         {
             return "Connected!";
         }
 
-        if (this.server.getStatus() === SERVER_STATE.DISCONNECTED)
+        if (this._server.getStatus() === SERVER_STATE.DISCONNECTED)
         {
             return "Disconnected!";
         }
@@ -28,6 +28,6 @@ class ConnectButtonController
 
     onClick(): void
     {
-        this.server.connect();
+        this._server.connect(() => { this._server.checkVersionOfPLEN() });
     }
 } 
