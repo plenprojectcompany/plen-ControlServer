@@ -1,7 +1,7 @@
 "use strict";
 var APP_NAME = "PLEN Utils";
 angular.module(APP_NAME, []);
-/// <reference path="../index.ts" />
+/// <reference path='../index.ts' />
 var SERVER_STATE;
 (function (SERVER_STATE) {
     SERVER_STATE[SERVER_STATE["DISCONNECTED"] = 0] = "DISCONNECTED";
@@ -10,20 +10,24 @@ var SERVER_STATE;
 })(SERVER_STATE || (SERVER_STATE = {}));
 ;
 var PLENControlServerService = (function () {
-    function PLENControlServerService($http, $rootScope) {
-        this.$http = $http;
-        this.$rootScope = $rootScope;
+    function PLENControlServerService(_$q, _$http, _$rootScope) {
+        var _this = this;
+        this._$q = _$q;
+        this._$http = _$http;
+        this._$rootScope = _$rootScope;
         this._state = 0 /* DISCONNECTED */;
         this._socket = null;
-        this._ip_addr = "localhost:17264";
-        this.connect();
+        this._ip_addr = 'localhost:17264';
+        this.connect(function () {
+            _this.checkVersionOfPLEN();
+        });
     }
     PLENControlServerService.prototype.connect = function (success_callback) {
         var _this = this;
         if (success_callback === void 0) { success_callback = null; }
         if (this._state === 0 /* DISCONNECTED */) {
             this._state = 2 /* WAITING */;
-            this.$http.get("//" + this._ip_addr + "/v2/connect").success(function (response) {
+            this._$http.get('//' + this._ip_addr + '/v2/connect').success(function (response) {
                 if (response.data.result === true) {
                     _this._state = 1 /* CONNECTED */;
                     _this._createWebSocket();
@@ -33,7 +37,7 @@ var PLENControlServerService = (function () {
                 }
                 else {
                     _this._state = 0 /* DISCONNECTED */;
-                    alert("USB connection has been disconnected!");
+                    alert('USB connection has been disconnected!');
                 }
             }).error(function () {
                 _this._state = 0 /* DISCONNECTED */;
@@ -46,7 +50,7 @@ var PLENControlServerService = (function () {
         if (success_callback === void 0) { success_callback = null; }
         if (this._state === 1 /* CONNECTED */) {
             this._state = 2 /* WAITING */;
-            this.$http.put("//" + this._ip_addr + "/v2/motions/" + json.slot.toString(), json).success(function (response) {
+            this._$http.put('//' + this._ip_addr + '/v2/motions/' + json.slot.toString(), json).success(function (response) {
                 _this._state = 1 /* CONNECTED */;
                 if (response.data.result === true) {
                     if (!_.isNull(success_callback)) {
@@ -56,7 +60,7 @@ var PLENControlServerService = (function () {
             }).error(function () {
                 _this._state = 0 /* DISCONNECTED */;
             }).finally(function () {
-                _this.$rootScope.$broadcast("InstallFinished");
+                _this._$rootScope.$broadcast('InstallFinished');
             });
         }
     };
@@ -80,13 +84,52 @@ var PLENControlServerService = (function () {
     };
     PLENControlServerService.prototype.setHome = function (device, value) {
         if (this._state === 1 /* CONNECTED */) {
-            console.log("setHome");
             this._socket.send('setHome/' + device + '/' + value.toString());
+            this._state = 2 /* WAITING */;
+        }
+    };
+    PLENControlServerService.prototype.resetJointSettings = function () {
+        if (this._state === 1 /* CONNECTED */) {
+            this._socket.send('resetJointSettings');
             this._state = 2 /* WAITING */;
         }
     };
     PLENControlServerService.prototype.getStatus = function () {
         return this._state;
+    };
+    PLENControlServerService.prototype.checkVersionOfPLEN = function () {
+        var _this = this;
+        if (this._state === 1 /* CONNECTED */) {
+            var deferred = this._$q.defer();
+            var promise = deferred.promise;
+            var urls = [
+                '//' + this._ip_addr + '/v2/version',
+                '//' + this._ip_addr + '/v2/metadata'
+            ];
+            var responses = [];
+            _.each(urls, function (url) {
+                promise = promise.finally(function () {
+                    return _this._$http.get(url).success(function (response) {
+                        responses.push(response);
+                    });
+                });
+            });
+            promise = promise.then(function () {
+                try {
+                    var firmware_version = parseInt(responses[0].data['version'].replace(/\./g, ''));
+                    var required_verison = parseInt(responses[1].data['required-firmware'].replace(/[\.\~]/g, ''));
+                    if (firmware_version < required_verison)
+                        throw 'version error';
+                }
+                catch (e) {
+                    _this._state = 0 /* DISCONNECTED */;
+                    alert('Firmware version of your PLEN is old. Please update version ' + responses[1].data['required-firmware'] + '.');
+                }
+            }).catch(function () {
+                _this._state = 0 /* DISCONNECTED */;
+            });
+            deferred.resolve();
+        }
     };
     PLENControlServerService.prototype._createWebSocket = function () {
         var _this = this;
@@ -98,15 +141,15 @@ var PLENControlServerService = (function () {
         this._socket.onopen = function () {
             if (_this._socket.readyState === WebSocket.OPEN) {
                 _this._state = 1 /* CONNECTED */;
-                _this.$rootScope.$apply();
+                _this._$rootScope.$apply();
             }
         };
         this._socket.onmessage = function (event) {
-            if (event.data == "False") {
+            if (event.data == 'False') {
                 if (_this._state === 2 /* WAITING */) {
                     _this._state = 0 /* DISCONNECTED */;
-                    _this.$rootScope.$apply();
-                    alert("USB connection has been disconnected!");
+                    _this._$rootScope.$apply();
+                    alert('USB connection has been disconnected!');
                 }
             }
             else {
@@ -115,34 +158,38 @@ var PLENControlServerService = (function () {
         };
         this._socket.onerror = function () {
             _this._state = 0 /* DISCONNECTED */;
-            _this.$rootScope.$apply();
+            _this._$rootScope.$apply();
             alert("The control-server hasn't run.");
         };
     };
     PLENControlServerService.$inject = [
-        "$http",
-        "$rootScope"
+        '$q',
+        '$http',
+        '$rootScope'
     ];
     return PLENControlServerService;
 })();
-angular.module(APP_NAME).service("PLENControlServerService", PLENControlServerService);
+angular.module(APP_NAME).service('PLENControlServerService', PLENControlServerService);
 /// <reference path="../../services/PLENControlServer.Service.ts" />
 var ConnectButtonController = (function () {
-    function ConnectButtonController(server) {
-        this.server = server;
+    function ConnectButtonController(_server) {
+        this._server = _server;
         // noop.
     }
     ConnectButtonController.prototype.getServerStatus = function () {
-        if (this.server.getStatus() === 1 /* CONNECTED */) {
+        if (this._server.getStatus() === 1 /* CONNECTED */) {
             return "Connected!";
         }
-        if (this.server.getStatus() === 0 /* DISCONNECTED */) {
+        if (this._server.getStatus() === 0 /* DISCONNECTED */) {
             return "Disconnected!";
         }
         return "Connected!";
     };
     ConnectButtonController.prototype.onClick = function () {
-        this.server.connect();
+        var _this = this;
+        this._server.connect(function () {
+            _this._server.checkVersionOfPLEN();
+        });
     };
     ConnectButtonController.$inject = [
         "PLENControlServerService"
@@ -769,25 +816,28 @@ angular.module(APP_NAME).directive("progressBar", [
 /// <reference path="../../services/PLENControlServer.Service.ts" />
 /// <reference path="../../services/SharedJointSettings.Service.ts" />
 var SetterButtonsController = (function () {
-    function SetterButtonsController(ctrl_server_service, joint_settings) {
-        this.ctrl_server_service = ctrl_server_service;
-        this.joint_settings = joint_settings;
+    function SetterButtonsController(_$window, _ctrl_server_service, _joint_settings) {
+        this._$window = _$window;
+        this._ctrl_server_service = _ctrl_server_service;
+        this._joint_settings = _joint_settings;
         // noop.
     }
     SetterButtonsController.prototype.onClickMax = function () {
-        this.ctrl_server_service.setMax(this.joint_settings.joint_handle, this.joint_settings.getValue());
+        this._ctrl_server_service.setMax(this._joint_settings.joint_handle, this._joint_settings.getValue());
     };
     SetterButtonsController.prototype.onClickHome = function () {
-        this.ctrl_server_service.setHome(this.joint_settings.joint_handle, this.joint_settings.getValue());
+        this._ctrl_server_service.setHome(this._joint_settings.joint_handle, this._joint_settings.getValue());
     };
     SetterButtonsController.prototype.onClickMin = function () {
-        this.ctrl_server_service.setMin(this.joint_settings.joint_handle, this.joint_settings.getValue());
+        this._ctrl_server_service.setMin(this._joint_settings.joint_handle, this._joint_settings.getValue());
     };
     SetterButtonsController.prototype.onClickReset = function () {
-        this.joint_settings.setValue(0);
-        this.ctrl_server_service.applyNative(this.joint_settings.joint_handle, 0);
+        if (this._$window.confirm('Are you sure you want to reset the all joint settings?')) {
+            this._ctrl_server_service.resetJointSettings();
+        }
     };
     SetterButtonsController.$inject = [
+        "$window",
         "PLENControlServerService",
         "SharedJointSettingsService"
     ];
