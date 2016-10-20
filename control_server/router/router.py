@@ -12,14 +12,14 @@ __license__   = 'The MIT License'
 
 import logging
 from bottle import (Bottle, request, response, abort, template, static_file)
-from empty_motion import MOTION
+from models.empty_motion import EMPTY_MOTION
 
 
 # Create module level instances.
 # ==============================================================================
 _LOGGER = logging.getLogger('plen-ControlServer').getChild(__name__)
 
-_empty_motion = MOTION
+_empty_motion = EMPTY_MOTION
 _driver       = None
 
 router = Bottle()
@@ -106,7 +106,7 @@ def cmdstream():
         while True:
             try:
                 messages = wsock.receive().split('/')
-                result   = getattr(_driver, messages[0])(*messages[1:])
+                result   = getattr(_driver, messages[0])(*messages[1:]) if (len(messages) == 1) else getattr(_driver, messages[0])()
 
                 wsock.send(str(result))
 
@@ -257,7 +257,7 @@ def metadata_get():
         'resource': 'metadata',
         'data': {
             'api-version': 2,
-            'require-firmware': '1.1.0~'
+            'required-firmware': '1.4.1~'
         }
     }
 

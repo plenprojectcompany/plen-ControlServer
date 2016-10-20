@@ -1,11 +1,12 @@
 {
-    "port"   : 17264,
-    "driver" : {
-        "name"    : "usb",
-        "options" : {
-            "compiler" : {
-                "path" : "C:/workdir/app/Arduino/arduino.exe"
-            }
+    "port": 17264,
+    "driver": {
+        "name": "usb",
+        "options": {
+            "compiler": {
+                "path": "C:/workdir/app/Arduino/arduino.exe"
+            },
+            "verify": true
         }
     }
 }

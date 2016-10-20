@@ -41,6 +41,10 @@ class AbstractDriver(object):
         pass
 
     @abstractmethod
+    def resetJointSettings(self):
+        pass
+
+    @abstractmethod
     def getMotion(self, slot):
         pass
 

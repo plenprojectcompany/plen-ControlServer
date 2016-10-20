@@ -1,4 +1,4 @@
-﻿/// <reference path="../index.ts" />
+﻿/// <reference path='../index.ts' />
 
 enum SERVER_STATE
 {
@@ -11,19 +11,21 @@ class PLENControlServerService
 {
     private _state: SERVER_STATE = SERVER_STATE.DISCONNECTED;
     private _socket: WebSocket = null;
-    private _ip_addr: string = "localhost:17264";
+    private _ip_addr: string = 'localhost:17264';
 
     static $inject = [
-        "$http",
-        "$rootScope"
+        '$q',
+        '$http',
+        '$rootScope'
     ];
 
     constructor(
-        public $http: ng.IHttpService,
-        public $rootScope: ng.IRootScopeService
+        private _$q: ng.IQService,
+        private _$http: ng.IHttpService,
+        private _$rootScope: ng.IRootScopeService
     )
     {
-        this.connect();
+        this.connect(() => { this.checkVersionOfPLEN(); });
     }
 
     connect(success_callback = null): void
@@ -32,7 +34,7 @@ class PLENControlServerService
         {
             this._state = SERVER_STATE.WAITING;
 
-            this.$http.get("//" + this._ip_addr + "/v2/connect")
+            this._$http.get('//' + this._ip_addr + '/v2/connect')
                 .success((response: any) =>
                 {
                     if (response.data.result === true)
@@ -49,7 +51,7 @@ class PLENControlServerService
                     {
                         this._state = SERVER_STATE.DISCONNECTED;
 
-                        alert("USB connection has been disconnected!");
+                        alert('USB connection has been disconnected!');
                     }
                 })
                 .error(() =>
@@ -67,7 +69,7 @@ class PLENControlServerService
         {
             this._state = SERVER_STATE.WAITING;
 
-            this.$http.put("//" + this._ip_addr + "/v2/motions/" + json.slot.toString(), json)
+            this._$http.put('//' + this._ip_addr + '/v2/motions/' + json.slot.toString(), json)
                 .success((response: any) =>
                 {
                     this._state = SERVER_STATE.CONNECTED;
@@ -86,7 +88,7 @@ class PLENControlServerService
                 })
                 .finally(() =>
                 {
-                    this.$rootScope.$broadcast("InstallFinished");
+                    this._$rootScope.$broadcast('InstallFinished');
                 });
         }
     }
@@ -122,9 +124,16 @@ class PLENControlServerService
     {
         if (this._state === SERVER_STATE.CONNECTED)
         {
-            console.log("setHome");
-
             this._socket.send('setHome/' + device + '/' + value.toString());
+            this._state = SERVER_STATE.WAITING;
+        }
+    }
+
+    resetJointSettings(): void
+    {
+        if (this._state === SERVER_STATE.CONNECTED)
+        {
+            this._socket.send('resetJointSettings');
             this._state = SERVER_STATE.WAITING;
         }
     }
@@ -132,6 +141,57 @@ class PLENControlServerService
     getStatus(): SERVER_STATE
     {
         return this._state;
+    }
+
+    checkVersionOfPLEN(): void
+    {
+        if (this._state === SERVER_STATE.CONNECTED)
+        {
+            var deferred: ng.IDeferred<any> = this._$q.defer();
+            var promise: ng.IPromise<any>   = deferred.promise;
+
+            var urls: Array<string> = [
+                '//' + this._ip_addr + '/v2/version',
+                '//' + this._ip_addr + '/v2/metadata'
+            ];
+
+            var responses: Array<any> = [];
+
+            _.each(urls, (url: string) =>
+            {
+                promise = promise.finally(() =>
+                {
+                    return this._$http.get(url)
+                        .success((response: any) =>
+                        {
+                            responses.push(response);
+                        });
+                });
+            });
+
+            promise = promise
+                .then(() =>
+                {
+                    try {
+                        var firmware_version: number = parseInt(responses[0].data['version'].replace(/\./g, ''));
+                        var required_verison: number = parseInt(responses[1].data['required-firmware'].replace(/[\.\~]/g, ''));
+
+                        if (firmware_version < required_verison) throw 'version error';
+                    }
+                    catch (e)
+                    {
+                        this._state = SERVER_STATE.DISCONNECTED;
+
+                        alert('Firmware version of your PLEN is old. Please update version ' + responses[1].data['required-firmware'] + '.');
+                    }
+                })
+                .catch(() =>
+                {
+                    this._state = SERVER_STATE.DISCONNECTED;
+                });
+
+            deferred.resolve();
+        }
     }
 
     private _createWebSocket(): void
@@ -149,20 +209,20 @@ class PLENControlServerService
             if (this._socket.readyState === WebSocket.OPEN)
             {
                 this._state = SERVER_STATE.CONNECTED;
-                this.$rootScope.$apply();
+                this._$rootScope.$apply();
             }
         };
 
-        this._socket.onmessage = (event) =>
+        this._socket.onmessage = (event: any) =>
         {
-            if (event.data == "False")
+            if (event.data == 'False')
             {
                 if (this._state === SERVER_STATE.WAITING)
                 {
                     this._state = SERVER_STATE.DISCONNECTED;
-                    this.$rootScope.$apply();
+                    this._$rootScope.$apply();
 
-                    alert("USB connection has been disconnected!");
+                    alert('USB connection has been disconnected!');
                 }
             }
             else
@@ -174,11 +234,11 @@ class PLENControlServerService
         this._socket.onerror = () =>
         {
             this._state = SERVER_STATE.DISCONNECTED;
-            this.$rootScope.$apply();
+            this._$rootScope.$apply();
 
             alert("The control-server hasn't run.");
         };
     }
 }
 
-angular.module(APP_NAME).service("PLENControlServerService", PLENControlServerService);
+angular.module(APP_NAME).service('PLENControlServerService', PLENControlServerService);

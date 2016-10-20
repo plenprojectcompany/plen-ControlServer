@@ -5,7 +5,7 @@
 @brief Provide empty motion's definition.
 '''
 
-MOTION = {
+EMPTY_MOTION = {
     'codes': [],
     'frames': [
         {

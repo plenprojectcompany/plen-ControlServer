@@ -4,13 +4,15 @@
 class SetterButtonsController
 {
     static $inject = [
+        "$window",
         "PLENControlServerService",
         "SharedJointSettingsService"
     ];
 
     constructor(
-        public ctrl_server_service: PLENControlServerService,
-        public joint_settings: JointSettingsModel
+        private _$window: ng.IWindowService,
+        private _ctrl_server_service: PLENControlServerService,
+        private _joint_settings: JointSettingsModel
     )
     {
         // noop.
@@ -18,31 +20,33 @@ class SetterButtonsController
 
     onClickMax(): void
     {
-        this.ctrl_server_service.setMax(
-            this.joint_settings.joint_handle,
-            this.joint_settings.getValue()
+        this._ctrl_server_service.setMax(
+            this._joint_settings.joint_handle,
+            this._joint_settings.getValue()
         );
     }
 
     onClickHome(): void
     {
-        this.ctrl_server_service.setHome(
-            this.joint_settings.joint_handle,
-            this.joint_settings.getValue()
+        this._ctrl_server_service.setHome(
+            this._joint_settings.joint_handle,
+            this._joint_settings.getValue()
         );
     }
 
     onClickMin(): void
     {
-        this.ctrl_server_service.setMin(
-            this.joint_settings.joint_handle,
-            this.joint_settings.getValue()
+        this._ctrl_server_service.setMin(
+            this._joint_settings.joint_handle,
+            this._joint_settings.getValue()
         );
     }
 
     onClickReset(): void
     {
-        this.joint_settings.setValue(0);
-        this.ctrl_server_service.applyNative(this.joint_settings.joint_handle, 0);
+        if (this._$window.confirm('Are you sure you want to reset the all joint settings?'))
+        {
+            this._ctrl_server_service.resetJointSettings();
+        }
     }
 } 
