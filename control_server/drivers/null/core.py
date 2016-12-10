@@ -38,6 +38,12 @@ class NullDriver(AbstractDriver):
     def stop(self):
         return True
 
+    def push(self, slot, loop_count):
+        return True
+
+    def pop(self):
+        return True
+
     def install(self, motion):
         return True
 

@@ -37,6 +37,14 @@ class AbstractDriver(object):
         pass
 
     @abstractmethod
+    def push(self, slot, loop_count):
+        pass
+
+    @abstractmethod
+    def pop(self):
+        pass
+
+    @abstractmethod
     def install(self, motion):
         pass
 
