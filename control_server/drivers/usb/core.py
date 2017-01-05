@@ -163,6 +163,53 @@ class USBDriver(AbstractDriver):
         return True
 
 
+    def push(self, slot, loop_count):
+        if self._serial is None:
+            _LOGGER.error('Serial connection is disabled!')
+
+            return False
+
+        try:
+            # TODO: Will fix loop_count adjustment.
+            self._serial.write(self._PROTOCOL.pushCode(int(slot), int(loop_count) + 1))
+            time.sleep(0.01)
+
+        except (
+            serial.serialutil.SerialException,
+            serial.serialutil.SerialTimeoutException
+        ):
+            _LOGGER.error('USB cable is disconnected!')
+
+            self.disconnect()
+
+            return False
+
+        return True
+
+
+    def pop(self):
+        if self._serial is None:
+            _LOGGER.error('Serial connection is disabled!')
+
+            return False
+
+        try:
+            self._serial.write(self._PROTOCOL.popCode())
+            time.sleep(0.01)
+
+        except (
+            serial.serialutil.SerialException,
+            serial.serialutil.SerialTimeoutException
+        ):
+            _LOGGER.error('USB cable is disconnected!')
+
+            self.disconnect()
+
+            return False
+
+        return True
+
+
     def install(self, motion):
         if self._serial is None:
             _LOGGER.error('Serial connection is disabled!')
