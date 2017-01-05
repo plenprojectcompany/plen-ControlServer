@@ -78,10 +78,12 @@ def cmdstream():
     '''
     @brief Provide command-line stream on WebSocket.
 
-    The resource is able to do commands below.
+    The resource is able to do the methods that are implemented on drivers.
+    Such as:
     - apply
     - applyDiff
     - setHome
+    - Etc...
 
     Usage is shown as below.
     @code
@@ -92,7 +94,7 @@ def cmdstream():
 
     @note
     Definition of WebSocket does not regulate cross origin resource sharing,
-    so you may not use <b>enable_cors</b> decorator.
+    so you might not use <b>enable_cors</b> decorator.
     '''
 
     wsock = request.environ.get('wsgi.websocket')
@@ -106,7 +108,7 @@ def cmdstream():
         while True:
             try:
                 messages = wsock.receive().split('/')
-                result   = getattr(_driver, messages[0])(*messages[1:]) if (len(messages) >= 1) else getattr(_driver, messages[0])()
+                result   = getattr(_driver, messages[0])(*messages[1:])
 
                 wsock.send(str(result))
 
