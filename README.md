@@ -19,8 +19,9 @@ If you would like to use the application as a tuning up tool, Please [see also..
 ## Copyright (c) 2015,
 - [Kazuyuki TAKASE](https://github.com/Guvalif)
 - [Yugo KAJIWARA](https://github.com/musubi05)
+- [Tsuyoshi TATSUKAWA](https://github.com/tatsukawa)
 - [Kazuma TAKAHARA](https://github.com/kzm4269)
-- [PLEN Project Company](https://plen.jp)
+- [PLEN Project Company Inc.](https://plen.jp)
 
 ## Build Environment
 ### OS
