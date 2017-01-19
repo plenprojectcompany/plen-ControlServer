@@ -26,6 +26,8 @@ class PLENControlServerService
     )
     {
         this.connect(() => { this.checkVersionOfPLEN(); });
+
+        $(window).on('beforeunload', () => { this.disconnect(); });
     }
 
     connect(success_callback = null): void
@@ -59,6 +61,32 @@ class PLENControlServerService
                     this._state = SERVER_STATE.DISCONNECTED;
 
                     alert("The control-server hasn't run.");
+                });
+        }
+    }
+
+    disconnect(success_callback = null): void
+    {
+        if (this._state === SERVER_STATE.CONNECTED)
+        {
+            this._state = SERVER_STATE.WAITING;
+
+            this._$http.get('//' + this._ip_addr + '/v2/disconnect')
+                .success((response: any) =>
+                {
+                    if (response.data.result === true)
+                    {
+                        if (!_.isNull(success_callback))
+                        {
+                            success_callback();
+                        }
+                    }
+
+                    this._state = SERVER_STATE.DISCONNECTED;
+                })
+                .error(() =>
+                {
+                    this._state = SERVER_STATE.CONNECTED;
                 });
         }
     }
