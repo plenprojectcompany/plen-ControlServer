@@ -20,7 +20,6 @@
   <ItemGroup>
     <Content Include="angularjs\components\ConnectButton\view.html" />
     <Content Include="angularjs\components\InstallButton\view.html" />
-    <Content Include="angularjs\components\JointRadioList\view.html" />
     <Content Include="angularjs\components\JointSelector\view.html" />
     <Content Include="angularjs\components\LoadButton\view.html" />
     <Content Include="angularjs\components\ProgressBar\view.html" />
@@ -50,8 +49,6 @@
     <TypeScriptCompile Include="angularjs\components\ConnectButton\directive.ts" />
     <TypeScriptCompile Include="angularjs\components\InstallButton\controller.ts" />
     <TypeScriptCompile Include="angularjs\components\InstallButton\directive.ts" />
-    <TypeScriptCompile Include="angularjs\components\JointRadioList\controller.ts" />
-    <TypeScriptCompile Include="angularjs\components\JointRadioList\directive.ts" />
     <TypeScriptCompile Include="angularjs\components\JointSelector\controller.ts" />
     <TypeScriptCompile Include="angularjs\components\JointSelector\directive.ts" />
     <TypeScriptCompile Include="angularjs\components\LoadButton\controller.ts" />
