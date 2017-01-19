@@ -89,7 +89,7 @@ def bootstrap():
         Driver = drivers.DRIVER_MAP[CONFIG['driver']['name']]
 
     except:
-        _LOGGER.error('Driver "%s" is not found!' % CONFIG['driver']['name'])
+        _LOGGER.error('Driver "{}" is not found!'.format(CONFIG['driver']['name']))
 
         sys.exit()
 

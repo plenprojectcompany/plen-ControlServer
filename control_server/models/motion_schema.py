@@ -133,7 +133,7 @@ def _traverse(schema, obj):
 
     if not validater.validate_type(obj) or not validater.validate_contains(obj):
         from sys import stderr
-        stderr.write('Bad format!:\n - schema = %s\n - json = %s\n' % (schema, obj))
+        stderr.write('Bad format!:\n - schema = {}\n - json = {}\n'.format(schema, obj))
         raise BadFormatException()
 
     for traversable in validater.traversables(obj):
