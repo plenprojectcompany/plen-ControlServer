@@ -6,15 +6,15 @@
 '''
 
 __author__    = 'Kazuyuki TAKASE'
-__copyright__ = 'PLEN Project Company, and all authors.'
+__copyright__ = 'PLEN Project Company Inc, and all authors.'
 __license__   = 'The MIT License'
 
 
 import os
 import sys
-import imp
 import json
 import logging
+
 import drivers
 from router.router import (set_driver, server_worker)
 
@@ -26,9 +26,9 @@ _LOGGER.addHandler(logging.NullHandler())
 
 
 def init_logger(level=logging.INFO):
-    import datetime
+    from datetime import datetime
 
-    log_file = './logs/{0:%Y%m%d}.log'.format(datetime.datetime.now())
+    log_file = './logs/{0:%Y%m%d}.log'.format(datetime.now())
     handler  = logging.FileHandler(log_file, encoding='utf-8')
 
     handler.formatter = logging.Formatter(
@@ -41,7 +41,7 @@ def init_logger(level=logging.INFO):
 
 
 def splash():
-    print """
+    print("""
 - * - * - * - * - * - * - * - * - * - * - * - * - * - * - * - * - * - * - * -
      ______    _________________________________________________________
     /      `  |                                                         |
@@ -49,7 +49,7 @@ def splash():
     `:====:'  |_________________________________________________________|
 
 - * - * - * - * - * - * - * - * - * - * - * - * - * - * - * - * - * - * - * -
-"""[1:-1]
+"""[1:-1])
 
     sys.stdout.flush()
 
@@ -68,6 +68,7 @@ def bootstrap():
     if os.path.isfile('config.json'):
         with open('config.json', 'r') as fin:
             CONFIG = json.load(fin)
+
     else:
         _LOGGER.error('"config.json" is not found!')
 
@@ -78,6 +79,7 @@ def bootstrap():
     if os.path.isfile('device_map.json'):
         with open('device_map.json', 'r') as fin:
             DEVICE_MAP = json.load(fin)
+
     else:
         _LOGGER.error('"device_map.json" is not found!')
 
@@ -93,6 +95,8 @@ def bootstrap():
 
         sys.exit()
 
+    # Starting up the application.
+    # =========================================================================
     splash()
 
     set_driver(Driver(DEVICE_MAP, CONFIG['driver']['options']))
