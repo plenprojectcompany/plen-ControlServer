@@ -73,6 +73,10 @@ set config_name to "config.json"
 # -----------------------------------------------------------------------------
 tell application "Finder" to set this_folder to parent of (path to me) as string
 set app_path to POSIX path of this_folder
+if app_path ends with "/" then
+else
+    app_path = app_path & "/"
+end if
 
 # Copy necessary user's resources into the resource directory.
 # -----------------------------------------------------------------------------
