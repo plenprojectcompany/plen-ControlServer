@@ -21,6 +21,7 @@ If you would like to use the application as a tuning up tool, Please [see also..
 - [Yugo KAJIWARA](https://github.com/musubi05)
 - [Tsuyoshi TATSUKAWA](https://github.com/tatsukawa)
 - [Kazuma TAKAHARA](https://github.com/kzm4269)
+- [Tatsuroh SAKAGUCHI](https://github.com/Tacha-S)
 - [PLEN Project Company Inc.](https://plen.jp)
 
 ## Build Environment
