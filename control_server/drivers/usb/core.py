@@ -7,7 +7,7 @@
 
 __author__    = 'Kazuyuki TAKASE'
 __author__    = 'Yugo KAJIWARA'
-__copyright__ = 'PLEN Project Company, and all authors.'
+__copyright__ = 'PLEN Project Company Inc, and all authors.'
 __license__   = 'The MIT License'
 
 

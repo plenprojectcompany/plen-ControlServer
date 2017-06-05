@@ -6,7 +6,7 @@
 '''
 
 __author__    = 'Kazuma TAKAHARA'
-__copyright__ = 'PLEN Project Company, and all authors.'
+__copyright__ = 'PLEN Project Company Inc, and all authors.'
 __license__   = 'The MIT License'
 
 

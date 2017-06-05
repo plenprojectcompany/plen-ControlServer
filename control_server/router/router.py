@@ -6,7 +6,7 @@
 '''
 
 __author__    = 'Kazuyuki TAKASE'
-__copyright__ = 'PLEN Project Company, and all authors.'
+__copyright__ = 'PLEN Project Company Inc, and all authors.'
 __license__   = 'The MIT License'
 
 
@@ -118,6 +118,7 @@ def cmdstream():
                 _driver.disconnect()
 
                 break
+
     else:
         _LOGGER.error('PLEN is not found!')
 
@@ -143,7 +144,7 @@ def motion_get(SLOT):
     return response_json
 
 
-@router.route('/v2/motions/<SLOT:int>', method=['OPTIONS', 'DELETE'])
+@router.route('/v2/motions/<SLOT:int>', method=['DELETE'])
 @enable_cors
 def motion_delete(SLOT):
     '''
@@ -167,7 +168,7 @@ def motion_delete(SLOT):
     return response_json
 
 
-@router.route('/v2/motions/<SLOT:int>', method=['OPTIONS', 'PUT'])
+@router.route('/v2/motions/<SLOT:int>', method=['PUT'])
 @enable_cors
 def motion_put(SLOT):
     '''

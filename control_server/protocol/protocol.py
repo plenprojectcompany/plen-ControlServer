@@ -6,7 +6,7 @@
 '''
 
 __author__    = 'Kazuyuki TAKASE'
-__copyright__ = 'PLEN Project Company, and all authors.'
+__copyright__ = 'PLEN Project Company Inc, and all authors.'
 __license__   = 'The MIT License'
 
 
@@ -134,6 +134,7 @@ if __name__ == '__main__':
     if os.path.isfile('device_map.json'):
         with open('device_map.json', 'r') as fin:
             DEVICE_MAP = load(fin)
+
     else:
         exit()
 
