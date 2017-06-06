@@ -19,37 +19,37 @@ class Protocol(object):
         self._values     = [ 0 for _ in range(24) ]
 
     def applyDiff(self, device, value):
-        return '$AD{:02x}{:03x}'.format(self._DEVICE_MAP[device], (c_ushort(value).value & 0xFFF))
+        return '$AD{:02x}{:03x}'.format(self._DEVICE_MAP[device], (c_ushort(value).value & 0xFFF)).encode()
 
     def apply(self, device, value):
-        return '$AN{:02x}{:03x}'.format(self._DEVICE_MAP[device], (c_ushort(value).value & 0xFFF))
+        return '$AN{:02x}{:03x}'.format(self._DEVICE_MAP[device], (c_ushort(value).value & 0xFFF)).encode()
 
     def homePosition(self):
-        return '$HP'
+        return b'$HP'
 
     def playMotion(self, slot):
-        return '$PM{:02x}'.format(slot)
+        return '$PM{:02x}'.format(slot).encode()
 
     def stopMotion(self):
-        return '$SM'
+        return b'$SM'
 
     def popCode(self):
-        return '#PO'
+        return b'#PO'
 
     def pushCode(self, slot, loop_count):
-        return '#PU{:02x}{:02x}'.format(slot, loop_count)
+        return '#PU{:02x}{:02x}'.format(slot, loop_count).encode()
 
     def resetInterpreter(self):
-        return '#RI'
+        return b'#RI'
 
     def setHome(self, device, value):
-        return '>HO{:02x}{:03x}'.format(self._DEVICE_MAP[device], (c_ushort(value).value & 0xFFF))
+        return '>HO{:02x}{:03x}'.format(self._DEVICE_MAP[device], (c_ushort(value).value & 0xFFF)).encode()
 
     def setJointSettings(self):
-        return '>JS'
+        return b'>JS'
 
     def setMax(self, device, value):
-        return '>MA{:02x}{:03x}'.format(self._DEVICE_MAP[device], (c_ushort(value).value & 0xFFF))
+        return '>MA{:02x}{:03x}'.format(self._DEVICE_MAP[device], (c_ushort(value).value & 0xFFF)).encode()
 
     def install(self, motion):
         motion['@frame_length'] = len(motion['frames'])
@@ -62,7 +62,7 @@ class Protocol(object):
 
             cmd += self.setMotionFrame(motion['frames'][index])
 
-        return str(cmd)
+        return cmd
 
     def setMotionFrame(self, frame):
         cmd  = '>MF'
@@ -75,7 +75,7 @@ class Protocol(object):
 
         cmd += ''.join(map(lambda v: '{:04x}'.format(v), self._values))
 
-        return str(cmd)
+        return cmd.encode()
 
     def setMotionHeader(self, header):
         cmd  = '>MH'
@@ -98,19 +98,19 @@ class Protocol(object):
         cmd += ''.join(protocol_codes)
         cmd += '{:02x}'.format(header['@frame_length'])
 
-        return str(cmd)
+        return cmd.encode()
 
     def setMin(self, device, value):
-        return '>MI{:02x}{:03x}'.format(self._DEVICE_MAP[device], (c_ushort(value).value & 0xFFF))
+        return '>MI{:02x}{:03x}'.format(self._DEVICE_MAP[device], (c_ushort(value).value & 0xFFF)).encode()
 
     def getJointSettings(self):
-        return '<JS'
+        return b'<JS'
 
     def getMotion(self, slot):
-        return '<MO{:02x}'.format(slot)
+        return '<MO{:02x}'.format(slot).encode()
 
     def getVersionInformation(self):
-        return '<VI'
+        return b'<VI'
 
 
 if __name__ == '__main__':

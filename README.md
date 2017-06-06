@@ -21,6 +21,7 @@ If you would like to use the application as a tuning up tool, Please [see also..
 - [Yugo KAJIWARA](https://github.com/musubi05)
 - [Tsuyoshi TATSUKAWA](https://github.com/tatsukawa)
 - [Kazuma TAKAHARA](https://github.com/kzm4269)
+- [Tatsuroh SAKAGUCHI](https://github.com/Tacha-S)
 - [PLEN Project Company Inc.](https://plen.jp)
 
 ## Build Environment
@@ -30,12 +31,13 @@ If you would like to use the application as a tuning up tool, Please [see also..
 - OS X Yosemite (10.10.4)
 
 ### ControlServer
-- Python 2.7.9
-- bottle 0.12.9
-- gevent 1.1.0
-- gevent-websocket 0.9.5
-- pyserial 3.0.1
-- py2exe 0.6.9
+- Python 3.6.1
+- bottle 0.12.13
+- gevent 1.2.1
+- gevent-websocket 0.10.1
+- greenlet 0.4.12
+- pyserial 3.3
+- py2exe 0.9.2
 - py2app 0.7.3
 
 ### GUI

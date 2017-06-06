@@ -39,7 +39,8 @@ class USBDriver(AbstractDriver):
         self._OPTIONS  = options
 
 
-    def _findDevice(self):
+    @staticmethod
+    def findDevice():
         com = None
 
         # TODO: Will fix device finding method.
@@ -294,7 +295,7 @@ class USBDriver(AbstractDriver):
 
             return None
 
-        motion = ''
+        motion = b''
 
         while self._serial.in_waiting > 0:
             motion += self._serial.read(self._serial.in_waiting)
@@ -326,7 +327,7 @@ class USBDriver(AbstractDriver):
 
             return None
 
-        version = ''
+        version = b''
 
         while self._serial.in_waiting > 0:
             version += self._serial.read(self._serial.in_waiting)
@@ -341,7 +342,7 @@ class USBDriver(AbstractDriver):
     def connect(self):
         self.disconnect()
 
-        COM = self._findDevice()
+        COM = self.findDevice()
 
         if COM is None:
             _LOGGER.error('PLEN is not found!')
@@ -370,7 +371,7 @@ class USBDriver(AbstractDriver):
     def upload(self, code):
         self.disconnect()
 
-        COM = self._findDevice()
+        COM = self.findDevice()
 
         if COM is None:
             _LOGGER.error('PLEN is not found!')
@@ -397,6 +398,7 @@ class USBDriver(AbstractDriver):
         proc.wait()
 
 
+        # TODO: It only works at Japanese environment.
         if _OS_TYPE == 'Windows':
             return proc.stdout.read().decode('shift-jis').encode('utf-8')
 

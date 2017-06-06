@@ -1,4 +1,5 @@
-bottle==0.12.9
-gevent==1.1.0
-gevent-websocket==0.9.5
-pyserial==3.0.1
+bottle==0.12.13
+gevent==1.2.1
+gevent-websocket==0.10.1
+greenlet==0.4.12
+pyserial==3.3
