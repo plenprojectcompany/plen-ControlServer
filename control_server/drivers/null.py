@@ -11,6 +11,8 @@ __license__   = 'The MIT License'
 
 
 import logging
+from typing import (Optional, Union)
+
 from drivers.abstract import AbstractDriver
 
 
@@ -20,47 +22,47 @@ _LOGGER = logging.getLogger('plen-ControlServer').getChild(__name__)
 
 
 class NullDriver(AbstractDriver):
-    def __init__(self, device_map, options):
+    def __init__(self, device_map: dict, options: dict) -> None:
         pass
 
-    def apply(self, device, value):
+    def apply(self, device: str, value: int) -> bool:
         return True
 
-    def applyDiff(self, device, value):
+    def applyDiff(self, device: str, value: int) -> bool:
         return True
 
-    def setHome(self, device, value):
+    def setHome(self, device: str, value: int) -> bool:
         return True
 
-    def play(self, slot):
+    def play(self, slot: int) -> bool:
         return True
 
-    def stop(self):
+    def stop(self) -> bool:
         return True
 
-    def push(self, slot, loop_count):
+    def push(self, slot: int, loop_count: int) -> bool:
         return True
 
-    def pop(self):
+    def pop(self) -> bool:
         return True
 
-    def install(self, motion):
+    def install(self, motion: dict) -> bool:
         return True
 
-    def resetJointSettings(self):
+    def resetJointSettings(self) -> bool:
         return True
 
-    def getMotion(self, slot):
+    def getMotion(self, slot: int) -> Optional[dict]:
         return {}
 
-    def getVersionInformation(self):
+    def getVersionInformation(self) -> Optional[dict]:
         return {}
 
-    def connect(self):
+    def connect(self) -> bool:
         return True
 
-    def disconnect(self):
+    def disconnect(self) -> bool:
         return True
 
-    def upload(self, code):
+    def upload(self, code: str) -> Union[str, bool]:
         return True

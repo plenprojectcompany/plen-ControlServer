@@ -5,6 +5,11 @@
 @brief Provide empty motion's definition.
 '''
 
+__author__    = 'Kazuyuki TAKASE'
+__copyright__ = 'PLEN Project Company Inc, and all authors.'
+__license__   = 'The MIT License'
+
+
 EMPTY_MOTION = {
     'codes': [],
     'frames': [

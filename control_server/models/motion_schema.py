@@ -6,146 +6,12 @@
 '''
 
 __author__    = 'Kazuma TAKAHARA'
+__author__    = 'Kazuyuki TAKASE'
 __copyright__ = 'PLEN Project Company Inc, and all authors.'
 __license__   = 'The MIT License'
 
 
-class BadFormatException(Exception):
-    pass
-
-
-class _ValidaterBase:
-    from abc import ABCMeta, abstractmethod
-
-    __metaclass__ = ABCMeta
-
-    def __init__(self, schema):
-        self.schema = schema
-
-    @abstractmethod
-    def validate_type(self, obj):
-        pass
-
-    @abstractmethod
-    def validate_contains(self, obj):
-        pass
-
-    @abstractmethod
-    def traversables(self, obj):
-        pass
-
-
-class _ObjectValidater(_ValidaterBase):
-    def validate_type(self, obj):
-        return isinstance(obj, dict)
-
-    def validate_contains(self, obj):
-        return all(
-            (expected_key in obj) or child_schema.get('optional')
-            for expected_key, child_schema in self.schema['properties'].items()
-        )
-
-    def traversables(self, obj):
-        return (
-            (child_schema, obj[expected_key])
-            for expected_key, child_schema in self.schema['properties'].items()
-            if expected_key in obj
-        )
-
-
-class _ArrayValidater(_ValidaterBase):
-    def validate_type(self, obj):
-        return isinstance(obj, list)
-
-    def validate_contains(self, obj):
-        len_obj = len(obj)
-        min_len = self.schema.get('minItems', len_obj)
-        max_len = self.schema.get('maxItems', len_obj)
-        return min_len <= len_obj <= max_len
-
-    def traversables(self, obj):
-        child_schema = self.schema['items']
-        return ((child_schema, item) for item in obj)
-
-
-class _IntegerValidater(_ValidaterBase):
-    def validate_type(self, obj):
-        return isinstance(obj, int)
-
-    def validate_contains(self, obj):
-        min_obj = self.schema.get('minimum', obj)
-        max_obj = self.schema.get('maximum', obj)
-        return min_obj <= obj <= max_obj
-
-    def traversables(self, obj):
-        return ()
-
-
-class _StringValidater(_ValidaterBase):
-    def validate_type(self, obj):
-        return (isinstance(obj, str) or isinstance(obj, unicode))
-
-    def validate_contains(self, obj):
-        len_obj = len(obj)
-        min_len = self.schema.get('minLength', len_obj)
-        max_len = self.schema.get('maxLength', len_obj)
-        return min_len <= len_obj <= max_len
-
-    def traversables(self, obj):
-        return ()
-
-
-class _BooleanValidater(_ValidaterBase):
-    def validate_type(self, obj):
-        return isinstance(obj, bool)
-
-    def validate_contains(self, obj):
-        return True
-
-    def traversables(self, obj):
-        return ()
-
-
-class _AnyValidater(_ValidaterBase):
-    def validate_type(self, obj):
-        return True
-
-    def validate_contains(self, obj):
-        return True
-
-    def traversables(self, obj):
-        return ()
-
-
-def _validater(schema):
-    return {
-        'object': _ObjectValidater,
-        'array': _ArrayValidater,
-        'integer': _IntegerValidater,
-        'string': _StringValidater,
-        'boolean': _BooleanValidater,
-        'any': _AnyValidater,
-    }[schema['type']](schema)
-
-
-def _traverse(schema, obj):
-    validater = _validater(schema)
-
-    if not validater.validate_type(obj) or not validater.validate_contains(obj):
-        from sys import stderr
-        stderr.write('Bad format!:\n - schema = {}\n - json = {}\n'.format(schema, obj))
-        raise BadFormatException()
-
-    for traversable in validater.traversables(obj):
-        _traverse(*traversable)
-
-
-def validate(motion):
-    try:
-        _traverse(MOTION_SCHEMA, motion)
-    except BadFormatException:
-        return False
-    return True
+from abc import (ABCMeta, abstractmethod)
 
 
 MOTION_SCHEMA = {
@@ -183,7 +49,7 @@ MOTION_SCHEMA = {
                         "type": "string"
                     },
                     "arguments": {
-                        "description": "arguments of the method",
+                        "description": "Arguments of the method",
                         "type": "array",
                         "items": {
                             "type": "any"
@@ -249,25 +115,143 @@ MOTION_SCHEMA = {
 }
 
 
-if __name__ == '__main__':
-    import sys
-    import json
-    from argparse import ArgumentParser
+class BadFormatException(Exception):
+    pass
 
-    sys.stderr = open('nul', 'w') # For windows only
 
-    arg_parser = ArgumentParser()
-    arg_parser.add_argument(
-        '-f', '--files',
-        dest     = 'files',
-        type     = file,
-        nargs    = '+',
-        required = True,
-        metavar  = '<FILE>',
-        help     = 'Please set any motion files you would like to validate.'
-    )
+class _ValidaterBase(metaclass=ABCMeta):
+    def __init__(self, schema):
+        self.schema = schema
 
-    args = arg_parser.parse_args()
+    @abstractmethod
+    def validate_type(self, obj):
+        pass
 
-    for file in args.files:
-        print('"{0}": {1}'.format(file.name, validate(json.load(file))))
+    @abstractmethod
+    def validate_contains(self, obj):
+        pass
+
+    @abstractmethod
+    def traversables(self, obj):
+        pass
+
+
+class _ObjectValidater(_ValidaterBase):
+    def validate_type(self, obj):
+        return isinstance(obj, dict)
+
+    def validate_contains(self, obj):
+        return all(
+            (expected_key in obj) or child_schema.get('optional')
+            for expected_key, child_schema in self.schema['properties'].items()
+        )
+
+    def traversables(self, obj):
+        return (
+            (child_schema, obj[expected_key])
+            for expected_key, child_schema in self.schema['properties'].items()
+            if expected_key in obj
+        )
+
+
+class _ArrayValidater(_ValidaterBase):
+    def validate_type(self, obj):
+        return isinstance(obj, list)
+
+    def validate_contains(self, obj):
+        len_obj = len(obj)
+        min_len = self.schema.get('minItems', len_obj)
+        max_len = self.schema.get('maxItems', len_obj)
+
+        return min_len <= len_obj <= max_len
+
+    def traversables(self, obj):
+        child_schema = self.schema['items']
+
+        return ((child_schema, item) for item in obj)
+
+
+class _IntegerValidater(_ValidaterBase):
+    def validate_type(self, obj):
+        return isinstance(obj, int)
+
+    def validate_contains(self, obj):
+        min_obj = self.schema.get('minimum', obj)
+        max_obj = self.schema.get('maximum', obj)
+
+        return min_obj <= obj <= max_obj
+
+    def traversables(self, obj):
+        return ()
+
+
+class _StringValidater(_ValidaterBase):
+    def validate_type(self, obj):
+        return (isinstance(obj, str) or isinstance(obj, unicode))
+
+    def validate_contains(self, obj):
+        len_obj = len(obj)
+        min_len = self.schema.get('minLength', len_obj)
+        max_len = self.schema.get('maxLength', len_obj)
+
+        return min_len <= len_obj <= max_len
+
+    def traversables(self, obj):
+        return ()
+
+
+class _BooleanValidater(_ValidaterBase):
+    def validate_type(self, obj):
+        return isinstance(obj, bool)
+
+    def validate_contains(self, obj):
+        return True
+
+    def traversables(self, obj):
+        return ()
+
+
+class _AnyValidater(_ValidaterBase):
+    def validate_type(self, obj):
+        return True
+
+    def validate_contains(self, obj):
+        return True
+
+    def traversables(self, obj):
+        return ()
+
+
+def _validater(schema):
+    return {
+        'object': _ObjectValidater,
+        'array': _ArrayValidater,
+        'integer': _IntegerValidater,
+        'string': _StringValidater,
+        'boolean': _BooleanValidater,
+        'any': _AnyValidater,
+    }[schema['type']](schema)
+
+
+def _traverse(schema, obj):
+    validater = _validater(schema)
+
+    if not validater.validate_type(obj) or not validater.validate_contains(obj):
+        from sys import stderr
+
+        stderr.write('Bad format!:\n - schema = {}\n - json = {}\n'.format(schema, obj))
+
+        raise BadFormatException()
+
+    for traversable in validater.traversables(obj):
+        _traverse(*traversable)
+
+
+def validate(motion, schema=MOTION_SCHEMA):
+    try:
+        _traverse(schema, motion)
+
+    except BadFormatException:
+        return False
+
+    return True

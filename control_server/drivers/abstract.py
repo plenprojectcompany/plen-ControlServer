@@ -11,63 +11,65 @@ __license__   = 'The MIT License'
 
 
 from abc import (ABCMeta, abstractmethod)
+from typing import (Optional, Union)
 
 
-class AbstractDriver(object):
-    __mateclass__ = ABCMeta
-
-    @abstractmethod
-    def apply(self, device, value):
+class AbstractDriver(metaclass=ABCMeta):
+    def __init__(self, device_map: dict, options: dict) -> None:
         pass
 
     @abstractmethod
-    def applyDiff(self, device, value):
+    def apply(self, device: str, value: int) -> bool:
         pass
 
     @abstractmethod
-    def setHome(self, device, value):
+    def applyDiff(self, device: str, value: int) -> bool:
         pass
 
     @abstractmethod
-    def play(self, slot):
+    def setHome(self, device: str, value: int) -> bool:
         pass
 
     @abstractmethod
-    def stop(self):
+    def play(self, slot: int) -> bool:
         pass
 
     @abstractmethod
-    def push(self, slot, loop_count):
+    def stop(self) -> bool:
         pass
 
     @abstractmethod
-    def pop(self):
+    def push(self, slot: int, loop_count: int) -> bool:
         pass
 
     @abstractmethod
-    def install(self, motion):
+    def pop(self) -> bool:
         pass
 
     @abstractmethod
-    def resetJointSettings(self):
+    def install(self, motion: dict) -> bool:
         pass
 
     @abstractmethod
-    def getMotion(self, slot):
+    def resetJointSettings(self) -> bool:
         pass
 
     @abstractmethod
-    def getVersionInformation(self):
+    def getMotion(self, slot: int) -> Optional[dict]:
         pass
 
     @abstractmethod
-    def connect(self):
+    def getVersionInformation(self) -> Optional[dict]:
         pass
 
     @abstractmethod
-    def disconnect(self):
+    def connect(self) -> bool:
         pass
 
     @abstractmethod
-    def upload(self, code):
+    def disconnect(self) -> bool:
+        pass
+
+    @abstractmethod
+    def upload(self, code: str) -> Union[str, bool]:
         pass

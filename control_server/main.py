@@ -10,7 +10,7 @@ __copyright__ = 'PLEN Project Company Inc, and all authors.'
 __license__   = 'The MIT License'
 
 
-import os
+from os.path import isfile
 import sys
 import json
 import logging
@@ -43,10 +43,10 @@ def init_logger(level=logging.INFO):
 def splash():
     print("""
 - * - * - * - * - * - * - * - * - * - * - * - * - * - * - * - * - * - * - * -
-     ______    _________________________________________________________
-    /      `  |                                                         |
-    | @  @ | <  "Control Server" is a HTTP server for controlling PLEN. |
-    `:====:'  |_________________________________________________________|
+       ______    ____________________________________________________
+      /      `  |                                                    |
+      | @  @ | <  "Control Server" is a HTTP server to control PLEN! |
+      `:====:'  |____________________________________________________|
 
 - * - * - * - * - * - * - * - * - * - * - * - * - * - * - * - * - * - * - * -
 """[1:-1])
@@ -60,12 +60,12 @@ def bootstrap():
     '''
 
     # Initialize logging settings.
-    # =========================================================================
+    # -------------------------------------------------------------------------
     init_logger()
 
     # Get configurations.
-    # =========================================================================
-    if os.path.isfile('config.json'):
+    # -------------------------------------------------------------------------
+    if isfile('config.json'):
         with open('config.json', 'r') as fin:
             CONFIG = json.load(fin)
 
@@ -75,8 +75,8 @@ def bootstrap():
         sys.exit()
 
     # Get device mapping.
-    # =========================================================================
-    if os.path.isfile('device_map.json'):
+    # -------------------------------------------------------------------------
+    if isfile('device_map.json'):
         with open('device_map.json', 'r') as fin:
             DEVICE_MAP = json.load(fin)
 
@@ -86,7 +86,7 @@ def bootstrap():
         sys.exit()
 
     # Get a data transfer driver.
-    # =========================================================================
+    # -------------------------------------------------------------------------
     try:
         Driver = drivers.DRIVER_MAP[CONFIG['driver']['name']]
 
@@ -96,7 +96,7 @@ def bootstrap():
         sys.exit()
 
     # Starting up the application.
-    # =========================================================================
+    # -------------------------------------------------------------------------
     splash()
 
     set_driver(Driver(DEVICE_MAP, CONFIG['driver']['options']))

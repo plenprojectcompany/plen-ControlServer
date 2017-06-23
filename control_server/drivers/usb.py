@@ -11,15 +11,19 @@ __copyright__ = 'PLEN Project Company Inc, and all authors.'
 __license__   = 'The MIT License'
 
 
-import serial
-import serial.tools.list_ports
 import os
-import subprocess
 import time
 import json
-import logging
 import shutil
+import logging
+import subprocess
 from platform import system
+from base64 import b64encode
+from typing import (Optional, Union)
+
+import serial
+from serial.tools.list_ports import comports
+
 from drivers.abstract import AbstractDriver
 from protocol.protocol import Protocol
 from models.motion_schema import validate
@@ -33,25 +37,25 @@ _OS_TYPE = system()
 
 
 class USBDriver(AbstractDriver):
-    def __init__(self, device_map, options):
+    def __init__(self, device_map: dict, options: dict) -> None:
         self._serial   = None
         self._PROTOCOL = Protocol(device_map)
         self._OPTIONS  = options
 
 
     @staticmethod
-    def findDevice():
+    def findDevice() -> Optional[str]:
         com = None
 
         # TODO: Will fix device finding method.
-        for DEVICE in list(serial.tools.list_ports.comports()):
-            if 'Arduino Micro' in DEVICE[1]:
-                com = DEVICE[0]
+        for device in comports():
+            if 'Arduino Micro' in device[1]:
+                com = device[0]
 
         return com
 
 
-    def apply(self, device, value):
+    def apply(self, device: str, value: int) -> bool:
         if self._serial is None:
             _LOGGER.error('Serial connection is disabled!')
 
@@ -74,7 +78,7 @@ class USBDriver(AbstractDriver):
         return True
 
 
-    def applyDiff(self, device, value):
+    def applyDiff(self, device: str, value: int) -> bool:
         if self._serial is None:
             _LOGGER.error('Serial connection is disabled!')
 
@@ -97,7 +101,7 @@ class USBDriver(AbstractDriver):
         return True
 
 
-    def setHome(self, device, value):
+    def setHome(self, device: str, value: int) -> bool:
         if self._serial is None:
             _LOGGER.error('Serial connection is disabled!')
 
@@ -120,7 +124,7 @@ class USBDriver(AbstractDriver):
         return True
 
 
-    def play(self, slot):
+    def play(self, slot: int) -> bool:
         if self._serial is None:
             _LOGGER.error('Serial connection is disabled!')
 
@@ -142,7 +146,7 @@ class USBDriver(AbstractDriver):
         return True
 
 
-    def stop(self):
+    def stop(self) -> bool:
         if self._serial is None:
             _LOGGER.error('Serial connection is disabled!')
 
@@ -164,7 +168,7 @@ class USBDriver(AbstractDriver):
         return True
 
 
-    def push(self, slot, loop_count):
+    def push(self, slot: int, loop_count: int) -> bool:
         if self._serial is None:
             _LOGGER.error('Serial connection is disabled!')
 
@@ -188,7 +192,7 @@ class USBDriver(AbstractDriver):
         return True
 
 
-    def pop(self):
+    def pop(self) -> bool:
         if self._serial is None:
             _LOGGER.error('Serial connection is disabled!')
 
@@ -211,7 +215,7 @@ class USBDriver(AbstractDriver):
         return True
 
 
-    def install(self, motion):
+    def install(self, motion: dict) -> bool:
         if self._serial is None:
             _LOGGER.error('Serial connection is disabled!')
 
@@ -250,7 +254,7 @@ class USBDriver(AbstractDriver):
         return True
 
 
-    def resetJointSettings(self):
+    def resetJointSettings(self) -> bool:
         if self._serial is None:
             _LOGGER.error('Serial connection is disabled!')
 
@@ -275,7 +279,7 @@ class USBDriver(AbstractDriver):
         return True
 
 
-    def getMotion(self, slot):
+    def getMotion(self, slot: int) -> Optional[dict]:
         if self._serial is None:
             _LOGGER.error('Serial connection is disabled!')
 
@@ -307,7 +311,7 @@ class USBDriver(AbstractDriver):
         return None
 
 
-    def getVersionInformation(self):
+    def getVersionInformation(self) -> Optional[dict]:
         if self._serial is None:
             _LOGGER.error('Serial connection is disabled!')
 
@@ -339,7 +343,7 @@ class USBDriver(AbstractDriver):
         return None
 
 
-    def connect(self):
+    def connect(self) -> bool:
         self.disconnect()
 
         COM = self.findDevice()
@@ -356,7 +360,7 @@ class USBDriver(AbstractDriver):
         return True
 
 
-    def disconnect(self):
+    def disconnect(self) -> bool:
         if self._serial is None:
             _LOGGER.error('Serial connection is disabled!')
 
@@ -368,7 +372,7 @@ class USBDriver(AbstractDriver):
         return True
 
 
-    def upload(self, code):
+    def upload(self, code: str) -> Union[str, bool]:
         self.disconnect()
 
         COM = self.findDevice()
@@ -378,8 +382,11 @@ class USBDriver(AbstractDriver):
 
             return False
 
-        shutil.rmtree('temp', ignore_errors=True)
-        os.mkdir('temp')
+        # shutil.rmtree('temp', ignore_errors=True)
+        # os.mkdir('temp')
+
+        if os.path.exists('./temp/temp.ino'):
+            os.remove('./temp/temp.ino')
 
         with open('./temp/temp.ino', 'w') as fout:
             fout.write(code)
@@ -400,6 +407,6 @@ class USBDriver(AbstractDriver):
 
         # TODO: It only works at Japanese environment.
         if _OS_TYPE == 'Windows':
-            return proc.stdout.read().decode('shift-jis').encode('utf-8')
+            return b64encode(proc.stdout.read().decode('shift-jis').encode()).decode()
 
-        return proc.stdout.read()
+        return b64encode(proc.stdout.read().encode()).decode()

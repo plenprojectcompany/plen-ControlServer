@@ -11,12 +11,14 @@ __license__   = 'The MIT License'
 
 
 import logging
+
 from bottle import (Bottle, request, response, abort, template, static_file)
+
 from models.empty_motion import EMPTY_MOTION
 
 
 # Create module level instances.
-# ==============================================================================
+# =============================================================================
 _LOGGER = logging.getLogger('plen-ControlServer').getChild(__name__)
 
 _empty_motion = EMPTY_MOTION
@@ -102,12 +104,23 @@ def cmdstream():
     if not wsock:
         _LOGGER.error('Expected WebSocket request!')
 
-        abort(400, 'Expected WebSocket request.')
+        abort(400, 'Expected WebSocket request!')
 
     if _driver.connect():
         while True:
             try:
                 messages = wsock.receive().split('/')
+
+                # method   = getattr(_driver, messages[0])
+                # argnames = method.__func__.__code__.co_varnames[1:]
+                # argtypes = method.__func__.__annotations__
+                # argcasts = map(lambda an: getattr(__builtins__, argtypes[an]), argnames)
+                #
+                # assert len(argnames) == len(messages[1:]), 'With calling "{}", argumetns length is not same as expecting ones!'.format()
+                #
+                # args   = map(lambda f, a: f(a), argcasts, messages[1:])
+                # result = method(*args)
+
                 result   = getattr(_driver, messages[0])(*messages[1:])
 
                 wsock.send(str(result))
@@ -122,7 +135,7 @@ def cmdstream():
     else:
         _LOGGER.error('PLEN is not found!')
 
-        abort(404, 'PLEN is not found.')
+        abort(404, 'PLEN is not found!')
 
 
 @router.route('/v2/motions/<SLOT:int>', method=['OPTIONS', 'GET'])
@@ -136,10 +149,18 @@ def motion_get(SLOT):
 
     response_json = {
         'resource': 'motions',
-        'data': _driver.getMotion(SLOT)
+        'data': None
     }
 
     response.content_type = 'application/json'
+
+    try:
+        response_json['data'] = _driver.getMotion(SLOT)
+
+    except Exception as e:
+        response.status = 500
+
+        _LOGGER.exception('An exception was raised!: %s', e)
 
     return response_json
 
@@ -159,11 +180,19 @@ def motion_delete(SLOT):
         'resource': 'motions',
         'data': {
             'command': 'reset',
-            'result': _driver.install(_empty_motion)
+            'result': None
         }
     }
 
     response.content_type = 'application/json'
+
+    try:
+        response_json['data']['result'] = _driver.install(_empty_motion)
+
+    except Exception as e:
+        response.status = 500
+
+        _LOGGER.exception('An exception was raised!: %s', e)
 
     return response_json
 
@@ -181,11 +210,19 @@ def motion_put(SLOT):
         'resource': 'motions',
         'data': {
             'command': 'install',
-            'result': _driver.install(request.json)
+            'result': None
         }
     }
 
     response.content_type = 'application/json'
+
+    try:
+        response_json['data']['result'] = _driver.install(request.json)
+
+    except Exception as e:
+        response.status = 500
+
+        _LOGGER.exception('An exception was raised!: %s', e)
 
     return response_json
 
@@ -203,11 +240,19 @@ def motion_play(SLOT):
         'resource': 'motions',
         'data': {
             'command': 'play',
-            'result': _driver.play(SLOT)
+            'result': None
         }
     }
 
     response.content_type = 'application/json'
+
+    try:
+        response_json['data']['result'] = _driver.play(SLOT)
+
+    except Exception as e:
+        response.status = 500
+
+        _LOGGER.exception('An exception was raised!: %s', e)
 
     return response_json
 
@@ -223,11 +268,19 @@ def motion_stop():
         'resource': 'motions',
         'data': {
             'command': 'stop',
-            'result': _driver.stop()
+            'result': None
         }
     }
 
     response.content_type = 'application/json'
+
+    try:
+        response_json['data']['result'] = _driver.stop()
+
+    except Exception as e:
+        response.status = 500
+
+        _LOGGER.exception('An exception was raised!: %s', e)
 
     return response_json
 
@@ -241,10 +294,18 @@ def version_get():
 
     response_json = {
         'resource': 'version',
-        'data': _driver.getVersionInformation()
+        'data': None
     }
 
     response.content_type = 'application/json'
+
+    try:
+        response_json['data'] = _driver.getVersionInformation()
+
+    except Exception as e:
+        response.status = 500
+
+        _LOGGER.exception('An exception was raised!: %s', e)
 
     return response_json
 
@@ -280,11 +341,19 @@ def connect():
         'resource': 'driver',
         'data': {
             'command': 'connect',
-            'result': _driver.connect()
+            'result': None
         }
     }
 
     response.content_type = 'application/json'
+
+    try:
+        response_json['data']['result'] = _driver.connect()
+
+    except Exception as e:
+        response.status = 500
+
+        _LOGGER.exception('An exception was raised!: %s', e)
 
     return response_json
 
@@ -300,11 +369,19 @@ def disconnect():
         'resource': 'driver',
         'data': {
             'command': 'disconnect',
-            'result': _driver.disconnect()
+            'result': None
         }
     }
 
     response.content_type = 'application/json'
+
+    try:
+        response_json['data']['result'] = _driver.disconnect()
+
+    except Exception as e:
+        response.status = 500
+
+        _LOGGER.exception('An exception was raised!: %s', e)
 
     return response_json
 
@@ -313,18 +390,26 @@ def disconnect():
 @enable_cors
 def upload():
     '''
-    @brief Upload a arduino code
+    @brief Upload an arduino code
     '''
 
     response_json = {
         'resource': 'driver',
         'data': {
             'command': 'upload',
-            'result': _driver.upload(request.body.read())
+            'result': None
         }
     }
 
     response.content_type = 'application/json'
+
+    try:
+        response_json['data']['result'] = _driver.upload(request.body.read().decode())
+
+    except Exception as e:
+        response.status = 500
+
+        _LOGGER.exception('An exception was raised!: %s', e)
 
     return response_json
 
@@ -354,20 +439,3 @@ def server_worker(port=17264):
 
     wsgi = WSGIServer(('localhost', port), router, handler_class=WebSocketHandler)
     wsgi.serve_forever()
-
-
-# Application entry point.
-# ==============================================================================
-if __name__ == '__main__':
-    import os
-    import sys
-
-    sys.path.append(os.pardir)
-
-    from bottle import debug; debug(True)
-
-    from drivers.null.core import NullDriver
-
-    _driver = NullDriver(None, None)
-
-    server_worker()
