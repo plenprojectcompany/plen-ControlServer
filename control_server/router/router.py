@@ -152,6 +152,7 @@ def motion_get(SLOT):
         'data': None
     }
 
+    response.headers['Cache-Control'] = 'no-cache'
     response.content_type = 'application/json'
 
     try:
@@ -184,6 +185,7 @@ def motion_delete(SLOT):
         }
     }
 
+    response.headers['Cache-Control'] = 'no-cache'
     response.content_type = 'application/json'
 
     try:
@@ -214,6 +216,7 @@ def motion_put(SLOT):
         }
     }
 
+    response.headers['Cache-Control'] = 'no-cache'
     response.content_type = 'application/json'
 
     try:
@@ -244,6 +247,7 @@ def motion_play(SLOT):
         }
     }
 
+    response.headers['Cache-Control'] = 'no-cache'
     response.content_type = 'application/json'
 
     try:
@@ -272,6 +276,7 @@ def motion_stop():
         }
     }
 
+    response.headers['Cache-Control'] = 'no-cache'
     response.content_type = 'application/json'
 
     try:
@@ -297,6 +302,7 @@ def version_get():
         'data': None
     }
 
+    response.headers['Cache-Control'] = 'no-cache'
     response.content_type = 'application/json'
 
     try:
@@ -345,6 +351,7 @@ def connect():
         }
     }
 
+    response.headers['Cache-Control'] = 'no-cache'
     response.content_type = 'application/json'
 
     try:
@@ -373,6 +380,7 @@ def disconnect():
         }
     }
 
+    response.headers['Cache-Control'] = 'no-cache'
     response.content_type = 'application/json'
 
     try:
@@ -401,6 +409,7 @@ def upload():
         }
     }
 
+    response.headers['Cache-Control'] = 'no-cache'
     response.content_type = 'application/json'
 
     try:
