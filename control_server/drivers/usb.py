@@ -38,7 +38,8 @@ _OS_TYPE = system()
 
 class USBDriver(AbstractDriver):
     def __init__(self, device_map: dict, options: dict) -> None:
-        self._serial   = None
+        self._serial: Optional[serial.Serial] = None
+
         self._PROTOCOL = Protocol(device_map)
         self._OPTIONS  = options
 

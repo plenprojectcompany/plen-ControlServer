@@ -13,7 +13,7 @@ __license__   = 'The MIT License'
 from ctypes import c_ushort
 
 
-class Protocol(object):
+class Protocol():
     def __init__(self, device_map: dict) -> None:
         self._DEVICE_MAP = device_map
         self._values     = [ 0 for _ in range(24) ]
