@@ -17,7 +17,7 @@ import json
 import logging
 import drivers
 from router.router import (set_driver, server_worker)
-
+import platform
 
 # Create module level instances.
 # =============================================================================
@@ -61,7 +61,8 @@ def bootstrap():
 
     # Initialize logging settings.
     # =========================================================================
-    init_logger()
+    if platform.system() != "Darwin":
+        init_logger()
 
     # Get configurations.
     # =========================================================================

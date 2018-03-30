@@ -51,6 +51,13 @@ cp -r angularjs "${REPOSITORY_ROOT}/control_server/dist/${PY_NAME}.app/Contents/
 cp -r assets "${REPOSITORY_ROOT}/control_server/dist/${PY_NAME}.app/Contents/Resources/"
 
 
+# Set up Gnecessary user's resource files.
+# =============================================================================
+cd "${REPOSITORY_ROOT}/control_server/"
+cp config.json "dist/${PY_NAME}.app/Contents/Resources/"
+cp device_map.json "dist/${PY_NAME}.app/Contents/Resources/"
+
+
 # Clean up existing wrapped *.app.
 # =============================================================================
 cd "${REPOSITORY_ROOT}/control_server/dist/"
@@ -79,9 +86,10 @@ else
 end if
 
 # Copy necessary user's resources into the resource directory.
+# [WARNING!!!] This function can't work on macOS Sierra above due to App Translocation.
 # -----------------------------------------------------------------------------
-do shell script "cp -f \"" & app_path & device_map_name & "\" \"" & resource_path & device_map_name & "\""
-do shell script "cp -f \"" & app_path & config_name & "\" \"" & resource_path & config_name & "\""
+# do shell script "cp -f \"" & app_path & device_map_name & "\" \"" & resource_path & device_map_name & "\""
+# do shell script "cp -f \"" & app_path & config_name & "\" \"" & resource_path & config_name & "\""
 
 # Run the "Terminal"
 # -----------------------------------------------------------------------------

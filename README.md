@@ -28,7 +28,7 @@ If you would like to use the application as a tuning up tool, Please [see also..
 ### OS
 - Windows 8.1 Professional 64bit
 - Windows 7 Home Premium SP1 64bit
-- OS X Yosemite (10.10.4)
+- macOS High Sierra (10.13.3)
 
 ### ControlServer
 - Python 2.7.9
@@ -37,7 +37,7 @@ If you would like to use the application as a tuning up tool, Please [see also..
 - gevent-websocket 0.9.5
 - pyserial 3.0.1
 - py2exe 0.6.9
-- py2app 0.7.3
+- py2app 0.14
 
 ### GUI
 - Visual Studio Express 2013 for Web
